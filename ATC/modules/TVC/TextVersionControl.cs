@@ -14,12 +14,10 @@ namespace ATC.modules.TVC
 	{
 		private TVCSettings settings { get { return (TVCSettings)settings_base; } }
 
-		private DateTime startTime;
-
 		public TextVersionControl(ATCLogger l, TVCSettings s, string wd)
 			: base(l, s, wd, "TVC")
 		{
-			startTime = DateTime.Now;
+			// NOP
 		}
 
 		public override void start()
