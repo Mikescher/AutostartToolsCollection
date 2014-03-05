@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace ATC.config
 {
-	public class DIPSSettings : SettingsModule
+	public abstract class SettingsModule
 	{
-		public bool DIPS_enabled = false;
 	}
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ATC.config
 {
-	public class AWCSettings
+	public class AWCSettings : SettingsModule
 	{
 		public bool AWC_enabled = false;
 

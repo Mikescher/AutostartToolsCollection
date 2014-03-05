@@ -22,6 +22,7 @@ namespace ATC
 		public void log(string cat, string text)
 		{
 			loglist.Add(Tuple.Create(cat, text));
+			Console.WriteLine(text);
 		}
 
 		private List<string> getCategories()
@@ -31,7 +32,7 @@ namespace ATC
 
 		private string getDateFilename(string path, int idx = 0)
 		{
-			string prefix = String.Format(@"{0:yyyy}_{0:mm}_{0:dd}", startTime);
+			string prefix = String.Format(@"{0:yyyy}_{0:MM}_{0:dd}", startTime);
 			string suffix = ((idx == 0) ? "" : string.Format("_{0,00}", idx)) + ".log";
 
 			string filepath = Path.Combine(path, prefix+suffix);

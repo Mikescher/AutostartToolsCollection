@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ATC.config
 {
-	public class ATCSettings
+	public class ATCSettings : SettingsModule
 	{
 		public AWCSettings awc = new AWCSettings();
 		public DIPSSettings dips = new DIPSSettings();

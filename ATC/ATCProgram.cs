@@ -30,15 +30,16 @@ namespace ATC
 		{
 			config.load();
 
-			AutoWallChange awc = new AutoWallChange();
-			DesktopIconPositionSave dips = new DesktopIconPositionSave();
-			TextVersionControl tvc = new TextVersionControl();
+			AutoWallChange awc = new AutoWallChange(logger, config.settings.awc, workingDirectory);
+			DesktopIconPositionSaver dips = new DesktopIconPositionSaver(logger, config.settings.dips, workingDirectory);
+			TextVersionControl tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
 
 			awc.start();
 			dips.start();
 			tvc.start();
 
 			config.save();
+			logger.saveAll();
 		}
 	}
 }

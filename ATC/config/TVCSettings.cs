@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ATC.config
 {
-	public class TVCSettings
+	public class TVCSettings : SettingsModule
 	{
 		public bool TVC_enabled = false;
 
