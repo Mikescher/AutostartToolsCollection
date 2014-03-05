@@ -13,6 +13,8 @@ namespace ATC
 			ATCProgram prog = new ATCProgram();
 
 			prog.start();
+
+			Console.ReadLine(); // PAUSE
 		}
 	}
 }
