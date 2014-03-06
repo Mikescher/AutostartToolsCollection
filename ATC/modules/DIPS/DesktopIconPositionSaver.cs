@@ -51,7 +51,7 @@ namespace ATC.modules.DIPS
 				iconarr.Add(jo);
 			}
 
-			iconsav.Add("", iconarr);
+			iconsav.Add("icons", iconarr);
 
 			string iconsav_content = iconsav.ToString(Formatting.Indented);
 
