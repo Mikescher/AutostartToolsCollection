@@ -134,6 +134,8 @@ namespace DIPSViewer
 				MathExt.Swap(ref el_curr, ref el_prev);
 			}
 
+			lblChSet.Content = el_prev.time.ToString("dd.MM.yyy hh:mm") + "   -->   " + el_curr.time.ToString("dd.MM.yyy hh:mm");
+
 			JObject json_prev = JObject.Parse(File.ReadAllText(el_prev.path));
 			JObject json_curr = JObject.Parse(File.ReadAllText(el_curr.path));
 
@@ -142,12 +144,16 @@ namespace DIPSViewer
 		
 			// ####################
 
+			List<DesktopIcon> icons_all_prev;
+			List<DesktopIcon> icons_all_curr;
 			List<DesktopIcon> icons_all;
 			List<DesktopIcon> icons_unchanged;
 			List<Tuple<DesktopIcon, DesktopIcon>> icons_moved;
 			List<Tuple<DesktopIcon, DesktopIcon>> icons_removed;
 			List<Tuple<DesktopIcon, DesktopIcon>> icons_added;
 
+			icons_all_prev = icons_prev.ToList();
+			icons_all_curr = icons_curr.ToList();
 			icons_all = icons_curr.Concat(icons_prev).ToList();
 
 			icons_unchanged = icons_curr.Where(p => icons_prev.Contains(p)).ToList();
@@ -179,6 +185,8 @@ namespace DIPSViewer
 			bool show_moved = (sf == 0 || sf == 1 || sf == 3);
 			bool show_added = (sf == 0 || sf == 1 || sf == 4);
 			bool show_removed = (sf == 0 || sf == 1 || sf == 5);
+			bool show_prev = (sf == 6);
+			bool show_curr = (sf == 7);
 
 			if (show_unchanged)
 				foreach (DesktopIcon fe_icon in icons_unchanged)
@@ -195,6 +203,14 @@ namespace DIPSViewer
 			if (show_removed)
 				foreach (Tuple<DesktopIcon, DesktopIcon> fe_icon in icons_removed)
 					lbChanges.Items.Add(new CLVElement(fe_icon, string.Format(@"[ REMOVED ] '{0}' AT ({1}|{2})", fe_icon.Item1.name, fe_icon.Item1.x, fe_icon.Item1.y)));
+
+			if (show_prev)
+				foreach (DesktopIcon fe_icon in icons_all_prev)
+					lbChanges.Items.Add(new CLVElement(fe_icon, string.Format(@"[  ICON   ] '{0}' AT ({1}|{2})", fe_icon.name, fe_icon.x, fe_icon.y)));
+
+			if (show_curr)
+				foreach (DesktopIcon fe_icon in icons_all_curr)
+					lbChanges.Items.Add(new CLVElement(fe_icon, string.Format(@"[  ICON   ] '{0}' AT ({1}|{2})", fe_icon.name, fe_icon.x, fe_icon.y)));
 
 			lbChanges.SelectedIndex = cur_sel;
 
@@ -266,6 +282,18 @@ namespace DIPSViewer
 				{
 					drawMidRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, 64, 64, scale, Brushes.Gray, Brushes.Red, icon == sel);
 				}
+
+			if (show_prev)
+				foreach (DesktopIcon icon in icons_all_prev)
+				{
+					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, 64, 64, scale, Brushes.Gray, Brushes.Black, icon == sel);
+				}
+
+			if (show_curr)
+				foreach (DesktopIcon icon in icons_all_curr)
+				{
+					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, 64, 64, scale, Brushes.Gray, Brushes.Black, icon == sel);
+				}
 		}
 
 		private void drawMidRectangle(double offx, double offy, double x, double y, double w, double h, double scale, Brush fill, Brush outer, bool emph)
@@ -334,6 +362,11 @@ namespace DIPSViewer
 			r.StrokeThickness = 1;
 
 			canvas.Children.Add(r);
+		}
+
+		private void btnRestore_Click(object sender, RoutedEventArgs e)
+		{
+			//TODO Restore
 		}
 	}
 }
