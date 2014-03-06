@@ -4,17 +4,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace DIPSViewer
@@ -25,6 +19,8 @@ namespace DIPSViewer
 	public partial class MainWindow : Window
 	{
 		private bool loaded = false;
+
+		private const int BORDER = 75;
 
 		public MainWindow()
 		{
@@ -46,8 +42,10 @@ namespace DIPSViewer
 
 		private void autoSelect()
 		{
-			if (lbRight.Items.Count >= 1) lbRight.SelectedIndex = lbRight.Items.Count - 1;
-			if (lbLeft.Items.Count >= 2) lbLeft.SelectedIndex = lbLeft.Items.Count - 2;
+			if (lbRight.Items.Count >= 1)
+				lbRight.SelectedIndex = lbRight.Items.Count - 1;
+			if (lbLeft.Items.Count >= 2)
+				lbLeft.SelectedIndex = lbLeft.Items.Count - 2;
 		}
 
 		private bool IsValidDateTimeFileName(string path)
@@ -106,7 +104,8 @@ namespace DIPSViewer
 		private bool curr_lbChanges_Updating = false;
 		private void lbChanges_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			if (curr_lbChanges_Updating) return;
+			if (curr_lbChanges_Updating)
+				return;
 
 			curr_lbChanges_Updating = true;
 			repaintCanvas();
@@ -115,7 +114,8 @@ namespace DIPSViewer
 
 		private void repaintCanvas()
 		{
-			if (!loaded) return;
+			if (!loaded)
+				return;
 
 			int cur_sel = lbChanges.SelectedIndex;
 
@@ -127,7 +127,8 @@ namespace DIPSViewer
 			LVElement el_prev = lbLeft.SelectedItem as LVElement;
 			LVElement el_curr = lbRight.SelectedItem as LVElement;
 
-			if (el_curr == null || el_prev == null) return;
+			if (el_curr == null || el_prev == null)
+				return;
 
 			if (el_curr.time < el_prev.time)
 			{
@@ -141,7 +142,7 @@ namespace DIPSViewer
 
 			List<DesktopIcon> icons_prev = (json_prev["icons"] as JArray).Select(p => new DesktopIcon((string)p["title"], (int)p["x"], (int)p["y"])).ToList();
 			List<DesktopIcon> icons_curr = (json_curr["icons"] as JArray).Select(p => new DesktopIcon((string)p["title"], (int)p["x"], (int)p["y"])).ToList();
-		
+
 			// ####################
 
 			List<DesktopIcon> icons_all_prev;
@@ -165,7 +166,7 @@ namespace DIPSViewer
 
 			foreach (DesktopIcon i_curr in icons_curr)
 				foreach (DesktopIcon i_prev in icons_prev)
-					if (i_curr.name == i_prev.name) 
+					if (i_curr.name == i_prev.name)
 					{
 						icons_moved.Add(Tuple.Create(i_prev, i_curr));
 						break;
@@ -181,7 +182,7 @@ namespace DIPSViewer
 
 			int sf = cbFilter.SelectedIndex;
 
-			bool show_unchanged = (sf == 0 ||sf == 2);
+			bool show_unchanged = (sf == 0 || sf == 2);
 			bool show_moved = (sf == 0 || sf == 1 || sf == 3);
 			bool show_added = (sf == 0 || sf == 1 || sf == 4);
 			bool show_removed = (sf == 0 || sf == 1 || sf == 5);
@@ -232,10 +233,10 @@ namespace DIPSViewer
 				maxY = Math.Max(maxY, i.y);
 			}
 
-			minX -= 75;
-			minY -= 75;
-			maxX += 75;
-			maxY += 75;
+			minX -= BORDER;
+			minY -= BORDER;
+			maxX += BORDER;
+			maxY += BORDER;
 
 			int w = maxX - minX;
 			int h = maxY - minY;
@@ -303,7 +304,8 @@ namespace DIPSViewer
 
 		private void drawRectangle(double offx, double offy, double x, double y, double w, double h, double scale, Brush fill, Brush outer, bool emph)
 		{
-			if (outer == null) outer = Brushes.Black;
+			if (outer == null)
+				outer = Brushes.Black;
 
 			x += offx;
 			y += offy;
@@ -340,7 +342,8 @@ namespace DIPSViewer
 
 		private void drawLine(double offx, double offy, double x1, double y1, double x2, double y2, double scale, Brush outer = null)
 		{
-			if (outer == null) outer = Brushes.Black;
+			if (outer == null)
+				outer = Brushes.Black;
 
 			x1 += offx;
 			y1 += offy;
