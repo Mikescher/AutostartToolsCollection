@@ -231,6 +231,8 @@ namespace ATC.modules.AWC
 			log("[ SXGA ]  Images Found:    " + found);
 			log("[ SXGA ]  Image Choosen:   " + Path.GetFileName(choosen));
 
+			log();
+
 			RandomImageAccessor r3 = new RandomImageAccessor(settings.pathWallpaperTUX);
 			Image i3 = r3.getRandomImage(out excluded, out found, out choosen);
 
@@ -239,6 +241,7 @@ namespace ATC.modules.AWC
 				log("No Images found.");
 				return false;
 			}
+
 
 			log("[ TUX  ]  Images Found:    " + found);
 			log("[ TUX  ]  Image Choosen:   " + Path.GetFileName(choosen));
