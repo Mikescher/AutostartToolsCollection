@@ -1,10 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ATC.config
 {
@@ -21,21 +16,28 @@ namespace ATC.config
 			workingDirectory = wd;
 		}
 
-		public void load()
+		public void load(ATCLogger logger)
 		{
 			string path = Path.Combine(workingDirectory, logfilename);
 
-			if (File.Exists(path)) 
+			if (File.Exists(path))
 			{
 				string json = File.ReadAllText(path);
-				settings = (ATCSettings)JsonConvert.DeserializeObject(json, typeof(ATCSettings));
+				try
+				{
+					settings = (ATCSettings)JsonConvert.DeserializeObject(json, typeof(ATCSettings));
+				}
+				catch
+				{
+					logger.log("ATC", "Could not load Config-File");
+				}
 			}
 			else
 			{
 				settings = new ATCSettings();
 			}
 
-			
+
 		}
 
 		public void save()

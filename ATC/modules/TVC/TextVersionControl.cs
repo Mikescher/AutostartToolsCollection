@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ATC.modules.TVC
 {
@@ -45,6 +43,7 @@ namespace ATC.modules.TVC
 			foreach (string file in settings.paths)
 			{
 				vcontrolfile(file);
+				log();
 			}
 		}
 
@@ -57,7 +56,7 @@ namespace ATC.modules.TVC
 
 			if (Regex.IsMatch(fn, @"[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}.txt"))
 				return DateTime.TryParseExact(fnwe, "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out t);
-			else 
+			else
 				return false;
 		}
 

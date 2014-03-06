@@ -10,6 +10,8 @@ namespace ATC
 	{
 		static void Main(string[] args)
 		{
+			Console.SetWindowSize(80, 66);
+
 			ATCProgram prog = new ATCProgram();
 
 			prog.start();

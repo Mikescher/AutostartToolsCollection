@@ -39,6 +39,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -57,6 +58,10 @@
     <Compile Include="config\TVCSettings.cs" />
     <Compile Include="modules\ATCModule.cs" />
     <Compile Include="modules\AWC\AutoWallChange.cs" />
+    <Compile Include="modules\AWC\RandomImageAccessor.cs" />
+    <Compile Include="modules\AWC\ScreenHelper.cs" />
+    <Compile Include="modules\AWC\WallpaperJoiner.cs" />
+    <Compile Include="modules\AWC\WindowsWallpaperAPI.cs" />
     <Compile Include="modules\DIPS\DesktopIconPositionSaver.cs" />
     <Compile Include="modules\DIPS\LVItem.cs" />
     <Compile Include="modules\DIPS\Point.cs" />

@@ -6,11 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows;
 namespace ATC.modules.DIPS
 {
 	public class DesktopIconPositionSaver : ATCModule
@@ -101,8 +97,10 @@ namespace ATC.modules.DIPS
 			if (last_hash != curr_hash)
 			{
 				log(String.Format("Desktop Icons differ from last Version - creating new Entry"));
+				log();
 				log(String.Format("MD5 Current File: {0}", curr_hash));
 				log(String.Format("MD5 Previous File: {0}", last_hash));
+				log();
 
 				try
 				{
@@ -119,5 +117,5 @@ namespace ATC.modules.DIPS
 				log(String.Format("No changes in desktop icons detected (MD5: {0})", curr_hash));
 			}
 		}
-    }
+	}
 }
