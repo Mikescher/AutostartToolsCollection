@@ -22,9 +22,12 @@ namespace DIPSViewer
 	{
 		private bool loaded = false;
 
-		private const int BORDER = 75;
+		private const int BORDER = 10;
 		private const int ICON_SIZE = 64;
 		private const int RESTORE_ITERATIONS = 32;
+
+		private const int ICON_XOFFSET = 0;
+		private const int ICON_YOFFSET = 10;
 
 		public MainWindow()
 		{
@@ -266,8 +269,8 @@ namespace DIPSViewer
 
 			minX -= 0;
 			minY -= 0;
-			maxX += BORDER;
-			maxY += BORDER;
+			maxX += BORDER + ICON_SIZE;
+			maxY += BORDER + ICON_SIZE;
 
 			minX = MathExt.Min(minX, bounds_curr_prim.X, bounds_curr_sec.X);
 			minY = MathExt.Min(minY, bounds_curr_prim.Y, bounds_curr_sec.Y);
@@ -301,45 +304,40 @@ namespace DIPSViewer
 			if (show_unchanged)
 				foreach (DesktopIcon icon in icons_unchanged)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
+					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
 				}
 
 			if (show_moved)
 				foreach (Tuple<DesktopIcon, DesktopIcon> icon in icons_moved)
 				{
-					drawRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
-					drawRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
-					drawLine(offset_X, offset_Y, icon.Item1.x + ICON_SIZE / 2, icon.Item1.y + ICON_SIZE / 2, icon.Item2.x + ICON_SIZE / 2, icon.Item2.y + ICON_SIZE / 2, scale, Brushes.Blue);
+					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item1.x, icon.Item1.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
+					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item2.x, icon.Item2.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
+					drawLine(     offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item1.x + ICON_SIZE / 2, icon.Item1.y + ICON_SIZE / 2, icon.Item2.x + ICON_SIZE / 2, icon.Item2.y + ICON_SIZE / 2, scale, Brushes.Blue);
 				}
 
 			if (show_added)
 				foreach (Tuple<DesktopIcon, DesktopIcon> icon in icons_added)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Green, icon == sel);
+					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item2.x, icon.Item2.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Green, icon == sel);
 				}
 
 			if (show_removed)
 				foreach (Tuple<DesktopIcon, DesktopIcon> icon in icons_removed)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Red, icon == sel);
+					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item1.x, icon.Item1.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Red, icon == sel);
 				}
 
 			if (show_prev)
 				foreach (DesktopIcon icon in icons_all_prev)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
+					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
 				}
 
 			if (show_curr)
 				foreach (DesktopIcon icon in icons_all_curr)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
+					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
 				}
-		}
-
-		private void drawMidRectangle(double offx, double offy, double x, double y, double w, double h, double scale, Brush fill, Brush outer, bool emph)
-		{
-			drawRectangle(offx, offy, x - w / 2, y - h / 2, w, h, scale, fill, outer, emph);
 		}
 
 		private void drawRectangle(double offx, double offy, double x, double y, double w, double h, double scale, Brush fill, Brush outer, bool emph)
