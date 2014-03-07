@@ -16,7 +16,7 @@ namespace ATC
 
 			prog.start();
 
-			Console.ReadLine(); // PAUSE
+			//Console.ReadLine(); // PAUSE
 		}
 	}
 }
