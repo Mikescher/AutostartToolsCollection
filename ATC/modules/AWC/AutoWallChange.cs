@@ -219,7 +219,7 @@ namespace ATC.modules.AWC
 
 			log();
 
-			RandomImageAccessor r2 = new RandomImageAccessor(settings.pathWallpaperLD_normal);
+			RandomImageAccessor r2 = new RandomImageAccessor(settings.pathWallpaperLD_background);
 			Image i2 = r2.getRandomImage(out excluded, out found, out choosen);
 
 			if (i2 == null)

@@ -6,6 +6,8 @@ namespace ATC.modules.AWC
 {
 	public class WallpaperJoiner
 	{
+		private const int TUX_OFFSET = 4;
+
 		private MonitorConstellation constellation;
 
 		public WallpaperJoiner(MonitorConstellation mc)
@@ -35,18 +37,19 @@ namespace ATC.modules.AWC
 			Screen s_primary = ScreenHelper.getPrimary();
 			Screen s_secondary = ScreenHelper.getSecondary();
 
-			Rectangle bounds = ScreenHelper.getDualScreenBounds();
-			Point offset = ScreenHelper.getDualScreenOffset();
+			Rectangle bounds = new Rectangle(0, 0, 1920, 1080 + 1024);
 
 			Bitmap result = new Bitmap(bounds.Width, bounds.Height);
 
-			int tux_x = s_secondary.Bounds.Location.X + offset.X + s_secondary.Bounds.Width - tux.Width;
-			int tux_y = s_secondary.Bounds.Location.Y + offset.Y + s_secondary.Bounds.Height - tux.Height;
+			int tux_x = bounds.Width - tux.Width - TUX_OFFSET;
+			int tux_y = bounds.Height - tux.Height - TUX_OFFSET;
 
 			using (var graphics = Graphics.FromImage(result))
 			{
-				graphics.DrawImage(primary, s_primary.Bounds.Location.X + offset.X, s_primary.Bounds.Location.Y + offset.Y, 1920, 1080);
-				graphics.DrawImage(secondary, s_secondary.Bounds.Location.X + offset.X, s_secondary.Bounds.Location.Y + offset.Y, 1280, 1024);
+				graphics.FillRectangle(Brushes.Black, bounds);
+
+				graphics.DrawImage(primary, 0, 0, 1920, 1080);
+				graphics.DrawImage(secondary, 1920 - 1280, 1080, 1280, 1024);
 				graphics.DrawImage(tux, tux_x, tux_y, tux.Width, tux.Height);
 			}
 
