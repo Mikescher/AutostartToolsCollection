@@ -53,7 +53,7 @@ namespace ATC.modules.AWC
 					{
 						return MonitorConstellation.Dual_HD1080_HD1080;
 					}
-					else if (prim.Bounds.Width == 1280 && prim.Bounds.Height == 1024)
+					else if (sec.Bounds.Width == 1280 && sec.Bounds.Height == 1024)
 					{
 						return MonitorConstellation.Dual_HD1080_SXGA;
 					}
