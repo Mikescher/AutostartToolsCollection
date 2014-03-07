@@ -1,10 +1,12 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using DesktopAPI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -21,6 +23,8 @@ namespace DIPSViewer
 		private bool loaded = false;
 
 		private const int BORDER = 75;
+		private const int ICON_SIZE = 64;
+		private const int RESTORE_ITERATIONS = 32;
 
 		public MainWindow()
 		{
@@ -297,39 +301,39 @@ namespace DIPSViewer
 			if (show_unchanged)
 				foreach (DesktopIcon icon in icons_unchanged)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, 64, 64, scale, Brushes.Gray, Brushes.Black, icon == sel);
+					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
 				}
 
 			if (show_moved)
 				foreach (Tuple<DesktopIcon, DesktopIcon> icon in icons_moved)
 				{
-					drawRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, 64, 64, scale, Brushes.Gray, Brushes.Blue, icon == sel);
-					drawRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, 64, 64, scale, Brushes.Gray, Brushes.Blue, icon == sel);
-					drawLine(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, icon.Item2.x, icon.Item2.y, scale, Brushes.Blue);
+					drawRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
+					drawRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
+					drawLine(offset_X, offset_Y, icon.Item1.x + ICON_SIZE / 2, icon.Item1.y + ICON_SIZE / 2, icon.Item2.x + ICON_SIZE / 2, icon.Item2.y + ICON_SIZE / 2, scale, Brushes.Blue);
 				}
 
 			if (show_added)
 				foreach (Tuple<DesktopIcon, DesktopIcon> icon in icons_added)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, 64, 64, scale, Brushes.Gray, Brushes.Green, icon == sel);
+					drawMidRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Green, icon == sel);
 				}
 
 			if (show_removed)
 				foreach (Tuple<DesktopIcon, DesktopIcon> icon in icons_removed)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, 64, 64, scale, Brushes.Gray, Brushes.Red, icon == sel);
+					drawMidRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Red, icon == sel);
 				}
 
 			if (show_prev)
 				foreach (DesktopIcon icon in icons_all_prev)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, 64, 64, scale, Brushes.Gray, Brushes.Black, icon == sel);
+					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
 				}
 
 			if (show_curr)
 				foreach (DesktopIcon icon in icons_all_curr)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, 64, 64, scale, Brushes.Gray, Brushes.Black, icon == sel);
+					drawMidRectangle(offset_X, offset_Y, icon.x, icon.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Black, icon == sel);
 				}
 		}
 
@@ -405,7 +409,49 @@ namespace DIPSViewer
 
 		private void btnRestore_Click(object sender, RoutedEventArgs e)
 		{
-			//TODO Restore
+			btnRestore.IsEnabled = false;
+			(new Thread(new ThreadStart(restore))).Start();
+		}
+
+		private void restore()
+		{
+			LVElement el = null;
+
+			Dispatcher.Invoke(new Action(() =>
+			{
+				pbar.Minimum = 0;
+				pbar.Maximum = RESTORE_ITERATIONS - 1;
+				pbar.Value = 0;
+				el = lbLeft.SelectedItem as LVElement;
+			}));
+
+			if (el == null)
+				return;
+
+			for (int i = 0; i < RESTORE_ITERATIONS; i++)
+			{
+				singleRestore(el);
+				Thread.Sleep(Math.Min(100, 1500 / RESTORE_ITERATIONS));
+				Dispatcher.BeginInvoke(new Action(() => { pbar.Value = i; }));
+			}
+
+			Dispatcher.BeginInvoke(new Action(() =>
+			{
+				btnRestore.IsEnabled = true;
+				pbar.Value = 0;
+			}));
+		}
+
+		private void singleRestore(LVElement el)
+		{
+			JObject json_prev = JObject.Parse(File.ReadAllText(el.path));
+
+			List<DesktopIcon> icons_prev = (json_prev["icons"] as JArray).Select(p => new DesktopIcon((string)p["title"], (int)p["x"], (int)p["y"])).ToList();
+
+			foreach (DesktopIcon icon in icons_prev)
+			{
+				RemoteListView.SetDesktopPosition(icon.name, new DesktopAPI.Point() { x = icon.x, y = icon.y });
+			}
 		}
 	}
 }

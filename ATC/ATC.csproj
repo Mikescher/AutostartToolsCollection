@@ -63,12 +63,6 @@
     <Compile Include="modules\AWC\WallpaperJoiner.cs" />
     <Compile Include="modules\AWC\WindowsWallpaperAPI.cs" />
     <Compile Include="modules\DIPS\DesktopIconPositionSaver.cs" />
-    <Compile Include="modules\DIPS\LVItem.cs" />
-    <Compile Include="modules\DIPS\Point.cs" />
-    <Compile Include="modules\DIPS\RemoteListView_64.cs" />
-    <Compile Include="modules\DIPS\RemoteListView_32.cs" />
-    <Compile Include="modules\DIPS\RemoteListView.cs" />
-    <Compile Include="modules\DIPS\SafeProcessHandle.cs" />
     <Compile Include="modules\DIPS\ScreenHelper.cs" />
     <Compile Include="modules\DIPS\StringHashing.cs" />
     <Compile Include="modules\TVC\StringHashing.cs" />
@@ -78,6 +72,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DesktopAPI\DesktopAPI.csproj">
+      <Project>{d4aac464-1106-4a71-9fb3-be3bca1980f0}</Project>
+      <Name>DesktopAPI</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

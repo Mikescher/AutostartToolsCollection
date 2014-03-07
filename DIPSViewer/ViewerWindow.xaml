@@ -18,7 +18,8 @@
 		</Grid.ColumnDefinitions>
 		<ListBox x:Name="lbLeft"    Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="1" Margin="5" SelectionChanged="listbox_SelectionChanged"/>
 		<Button x:Name="btnRestore" Grid.Column="0" Grid.Row="4" Grid.RowSpan="1" Grid.ColumnSpan="1" Margin="5" Content="Restore" Click="btnRestore_Click"/>
-		<ListBox x:Name="lbRight"   Grid.Column="1" Grid.Row="1" Grid.RowSpan="4" Grid.ColumnSpan="1" Margin="5" SelectionChanged="listbox_SelectionChanged"/>
+		<ListBox x:Name="lbRight"   Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="1" Margin="5" SelectionChanged="listbox_SelectionChanged"/>
+		<ProgressBar x:Name="pbar"  Grid.Column="1" Grid.Row="4" Grid.RowSpan="1" Grid.ColumnSpan="1" Margin="5"/>
 		<Canvas x:Name="canvas"     Grid.Column="2" Grid.Row="1" Grid.RowSpan="1" Grid.ColumnSpan="2" Margin="3"/>
 		<TextBox x:Name="edPath"    Grid.Column="0" Grid.Row="0" Grid.RowSpan="1" Grid.ColumnSpan="3" Margin="10, 5" Text="%APPDATA%\ATC\DIPS\history"/>
 		<Button  x:Name="btnLoad"   Grid.Column="3" Grid.Row="0" Grid.RowSpan="1" Grid.ColumnSpan="1" Margin="10,5" Content="Load" Click="btnLoad_Click"/>

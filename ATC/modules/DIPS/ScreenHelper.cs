@@ -116,7 +116,7 @@ namespace ATC.modules.DIPS
 			return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 		}
 
-		public static Point getDualScreenOffset()
+		public static DesktopAPI.Point getDualScreenOffset()
 		{
 			Screen p = getPrimary();
 			Screen s = getSecondary();
@@ -124,7 +124,7 @@ namespace ATC.modules.DIPS
 			int minX = Math.Min(p.Bounds.X, s.Bounds.X);
 			int minY = Math.Min(p.Bounds.Y, s.Bounds.Y);
 
-			return new Point() { x = -minX, y = -minY };
+			return new DesktopAPI.Point() { x = -minX, y = -minY };
 		}
 	}
 }
