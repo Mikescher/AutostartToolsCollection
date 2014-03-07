@@ -140,8 +140,35 @@ namespace DIPSViewer
 			JObject json_prev = JObject.Parse(File.ReadAllText(el_prev.path));
 			JObject json_curr = JObject.Parse(File.ReadAllText(el_curr.path));
 
+			// ####################
+
+			System.Drawing.Rectangle bounds_curr_prim = new System.Drawing.Rectangle(
+				(int)((json_curr["screens"] as JObject)["primary"] as JObject)["x"],
+				(int)((json_curr["screens"] as JObject)["primary"] as JObject)["y"],
+				(int)((json_curr["screens"] as JObject)["primary"] as JObject)["width"],
+				(int)((json_curr["screens"] as JObject)["primary"] as JObject)["height"]);
+
+			System.Drawing.Rectangle bounds_curr_sec = bounds_curr_prim;
+
+			if ((json_curr["screens"] as JObject)["secondary"].Type == JTokenType.Object)
+				bounds_curr_sec = new System.Drawing.Rectangle(
+					(int)((json_curr["screens"] as JObject)["secondary"] as JObject)["x"],
+					(int)((json_curr["screens"] as JObject)["secondary"] as JObject)["y"],
+					(int)((json_curr["screens"] as JObject)["secondary"] as JObject)["width"],
+					(int)((json_curr["screens"] as JObject)["secondary"] as JObject)["height"]);
+
 			List<DesktopIcon> icons_prev = (json_prev["icons"] as JArray).Select(p => new DesktopIcon((string)p["title"], (int)p["x"], (int)p["y"])).ToList();
 			List<DesktopIcon> icons_curr = (json_curr["icons"] as JArray).Select(p => new DesktopIcon((string)p["title"], (int)p["x"], (int)p["y"])).ToList();
+
+			int os_x = -MathExt.Min(bounds_curr_prim.X, bounds_curr_sec.X);
+			int os_y = -MathExt.Min(bounds_curr_prim.Y, bounds_curr_sec.Y);
+
+			bounds_curr_prim.X += os_x;
+			bounds_curr_prim.Y += os_y;
+
+			bounds_curr_sec.X += os_x;
+			bounds_curr_sec.Y += os_y;
+
 
 			// ####################
 
@@ -233,10 +260,15 @@ namespace DIPSViewer
 				maxY = Math.Max(maxY, i.y);
 			}
 
-			minX -= BORDER;
-			minY -= BORDER;
+			minX -= 0;
+			minY -= 0;
 			maxX += BORDER;
 			maxY += BORDER;
+
+			minX = MathExt.Min(minX, bounds_curr_prim.X, bounds_curr_sec.X);
+			minY = MathExt.Min(minY, bounds_curr_prim.Y, bounds_curr_sec.Y);
+			maxX = MathExt.Max(maxX, bounds_curr_prim.X + bounds_curr_prim.Width, bounds_curr_sec.X + bounds_curr_sec.Width);
+			maxY = MathExt.Max(maxY, bounds_curr_prim.Y + bounds_curr_prim.Height, bounds_curr_sec.Y + bounds_curr_sec.Height);
 
 			int w = maxX - minX;
 			int h = maxY - minY;
@@ -256,7 +288,11 @@ namespace DIPSViewer
 				scale = cv_w / w;
 			}
 
-			drawRectangle(offset_X, offset_Y, minX, minY, w, h, scale, Brushes.LightGray, null, false);
+			drawRectangle(offset_X, offset_Y, minX, minY, w, h, scale, Brushes.Beige, null, false);
+
+
+			drawRectangle(offset_X, offset_Y, bounds_curr_prim.X, bounds_curr_prim.Y, bounds_curr_prim.Width, bounds_curr_prim.Height, scale, Brushes.LightGray, null, false);
+			drawRectangle(offset_X, offset_Y, bounds_curr_sec.X, bounds_curr_sec.Y, bounds_curr_sec.Width, bounds_curr_sec.Height, scale, Brushes.LightGray, null, false);
 
 			if (show_unchanged)
 				foreach (DesktopIcon icon in icons_unchanged)
@@ -267,8 +303,8 @@ namespace DIPSViewer
 			if (show_moved)
 				foreach (Tuple<DesktopIcon, DesktopIcon> icon in icons_moved)
 				{
-					drawMidRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, 64, 64, scale, Brushes.Gray, Brushes.Blue, icon == sel);
-					drawMidRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, 64, 64, scale, Brushes.Gray, Brushes.Blue, icon == sel);
+					drawRectangle(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, 64, 64, scale, Brushes.Gray, Brushes.Blue, icon == sel);
+					drawRectangle(offset_X, offset_Y, icon.Item2.x, icon.Item2.y, 64, 64, scale, Brushes.Gray, Brushes.Blue, icon == sel);
 					drawLine(offset_X, offset_Y, icon.Item1.x, icon.Item1.y, icon.Item2.x, icon.Item2.y, scale, Brushes.Blue);
 				}
 

@@ -69,6 +69,7 @@
     <Compile Include="modules\DIPS\RemoteListView_32.cs" />
     <Compile Include="modules\DIPS\RemoteListView.cs" />
     <Compile Include="modules\DIPS\SafeProcessHandle.cs" />
+    <Compile Include="modules\DIPS\ScreenHelper.cs" />
     <Compile Include="modules\DIPS\StringHashing.cs" />
     <Compile Include="modules\TVC\StringHashing.cs" />
     <Compile Include="modules\TVC\TextVersionControl.cs" />

@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 namespace ATC.modules.DIPS
 {
 	public class DesktopIconPositionSaver : ATCModule
@@ -34,6 +35,50 @@ namespace ATC.modules.DIPS
 			log(String.Format(@"Found {0} Icons on Desktop", dicons.Length));
 
 			JObject iconsav = new JObject();
+
+			JObject screeninfo = new JObject();
+			screeninfo["count"] = Screen.AllScreens.Length;
+			screeninfo["constellation"] = ScreenHelper.mcToString(ScreenHelper.getMonitorConstellation());
+
+			JObject s_prim = null;
+			JObject s_sec = null;
+
+			JArray screens = new JArray();
+			foreach (Screen  scr in Screen.AllScreens)
+			{
+				JObject screenobj = new JObject();
+				screenobj["primary"] = scr.Primary;
+				screenobj["x"] = scr.Bounds.X;
+				screenobj["y"] = scr.Bounds.Y;
+				screenobj["width"] = scr.Bounds.Width;
+				screenobj["height"] = scr.Bounds.Height;
+				screenobj["name"] = scr.DeviceName;
+
+				if (scr == ScreenHelper.getPrimary())
+				{
+					s_prim = screenobj;
+				}
+				else if (scr == ScreenHelper.getSecondary())
+				{
+					s_sec = screenobj;
+				}
+
+				screens.Add(screenobj);
+			}
+
+			if (s_prim != null)
+				screeninfo.Add("primary", s_prim);
+			else
+				screeninfo["primary"] = "null";
+
+			if (s_sec != null)
+				screeninfo.Add("secondary", s_sec);
+			else
+				screeninfo["secondary"] = "null";
+
+			screeninfo.Add("AllScreens", screens);
+
+			iconsav.Add("screens", screeninfo);
 
 			JArray iconarr = new JArray();
 
