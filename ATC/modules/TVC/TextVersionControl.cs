@@ -42,7 +42,11 @@ namespace ATC.modules.TVC
 
 			foreach (string file in settings.paths)
 			{
+				if (settings.cleanHistory)
+					cleanUpHistory(file);
+
 				vcontrolfile(file);
+
 				log();
 			}
 		}
@@ -88,6 +92,8 @@ namespace ATC.modules.TVC
 				OrderByDescending(p => DateTime.ParseExact(Path.GetFileNameWithoutExtension(p), "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture)).
 				ToList();
 
+
+
 			string last = "";
 
 			if (versions.Count > 0)
@@ -115,6 +121,38 @@ namespace ATC.modules.TVC
 			else
 			{
 				log(String.Format("File {0} remains unchanged (MD5: {1})", Path.GetFileName(file), curr_hash));
+			}
+		}
+
+		private void cleanUpHistory(string file)
+		{
+			string outputpath = Path.Combine(settings.output, Path.GetFileName(file));
+			Directory.CreateDirectory(outputpath);
+
+			List<string> versions = Directory.EnumerateFiles(outputpath).
+				Where(p => IsValidDateTimeFileName(p)).
+				OrderByDescending(p => DateTime.ParseExact(Path.GetFileNameWithoutExtension(p), "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture)).
+				ToList();
+
+			List<string> contents = versions.Select(p => File.ReadAllText(p)).ToList();
+
+			List<int> deletions = new List<int>();
+
+			for (int i = 1; i < versions.Count; i++)
+			{
+				if (contents[i] == contents[i - 1])
+				{
+					deletions.Add(i - 1);
+				}
+			}
+
+			for (int i = deletions.Count - 1; i >= 0; i--)
+			{
+				log(string.Format("Cleaned up duplicate Entry in History for {0}: {1}",
+					Path.GetFileNameWithoutExtension(file),
+					Path.GetFileNameWithoutExtension(versions[deletions[i]])));
+
+				File.Delete(versions[deletions[i]]);
 			}
 		}
 	}

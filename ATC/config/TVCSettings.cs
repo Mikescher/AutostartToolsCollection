@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ATC.config
 {
@@ -13,5 +9,7 @@ namespace ATC.config
 		public List<string> paths = new List<string>();
 
 		public string output = "";
+
+		public bool cleanHistory = true;
 	}
 }
