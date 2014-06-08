@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ATC
 {
@@ -10,13 +6,28 @@ namespace ATC
 	{
 		static void Main(string[] args)
 		{
-			Console.SetWindowSize(80, 66);
+			try
+			{
+				Console.SetWindowSize(80, 66);
+			}
+			catch (ArgumentOutOfRangeException e)
+			{
+				// it's ok
+			}
 
 			ATCProgram prog = new ATCProgram();
 
-			prog.start();
-
-			//Console.ReadLine(); // PAUSE
+			try
+			{
+				prog.start();
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("FATAL ERROR");
+				Console.WriteLine("##################################");
+				Console.WriteLine(e.ToString());
+				Console.ReadLine(); // PAUSE
+			}
 		}
 	}
 }

@@ -312,7 +312,7 @@ namespace DIPSViewer
 				{
 					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item1.x, icon.Item1.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
 					drawRectangle(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item2.x, icon.Item2.y, ICON_SIZE, ICON_SIZE, scale, Brushes.Gray, Brushes.Blue, icon == sel);
-					drawLine(     offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item1.x + ICON_SIZE / 2, icon.Item1.y + ICON_SIZE / 2, icon.Item2.x + ICON_SIZE / 2, icon.Item2.y + ICON_SIZE / 2, scale, Brushes.Blue);
+					drawLine(offset_X + ICON_XOFFSET, offset_Y + ICON_YOFFSET, icon.Item1.x + ICON_SIZE / 2, icon.Item1.y + ICON_SIZE / 2, icon.Item2.x + ICON_SIZE / 2, icon.Item2.y + ICON_SIZE / 2, scale, Brushes.Blue);
 				}
 
 			if (show_added)
@@ -405,12 +405,23 @@ namespace DIPSViewer
 			canvas.Children.Add(r);
 		}
 
-		private void btnRestore_Click(object sender, RoutedEventArgs e)
+		private void btnRestore_Click_L(object sender, RoutedEventArgs e)
 		{
-			btnRestore.IsEnabled = false;
+			restore_side = 1;
+			btnRestore1.IsEnabled = false;
+			btnRestore2.IsEnabled = false;
 			(new Thread(new ThreadStart(restore))).Start();
 		}
 
+		private void btnRestore_Click_R(object sender, RoutedEventArgs e)
+		{
+			restore_side = 2;
+			btnRestore1.IsEnabled = false;
+			btnRestore2.IsEnabled = false;
+			(new Thread(new ThreadStart(restore))).Start();
+		}
+
+		private int restore_side = -1;
 		private void restore()
 		{
 			LVElement el = null;
@@ -420,7 +431,7 @@ namespace DIPSViewer
 				pbar.Minimum = 0;
 				pbar.Maximum = RESTORE_ITERATIONS - 1;
 				pbar.Value = 0;
-				el = lbLeft.SelectedItem as LVElement;
+				el = (restore_side == 1) ? (lbLeft.SelectedItem as LVElement) : (lbRight.SelectedItem as LVElement);
 			}));
 
 			if (el == null)
@@ -435,7 +446,8 @@ namespace DIPSViewer
 
 			Dispatcher.BeginInvoke(new Action(() =>
 			{
-				btnRestore.IsEnabled = true;
+				btnRestore1.IsEnabled = true;
+				btnRestore2.IsEnabled = true;
 				pbar.Value = 0;
 			}));
 		}
