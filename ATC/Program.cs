@@ -10,7 +10,7 @@ namespace ATC
 			{
 				Console.SetWindowSize(80, 66);
 			}
-			catch (ArgumentOutOfRangeException e)
+			catch (ArgumentOutOfRangeException)
 			{
 				// it's ok
 			}

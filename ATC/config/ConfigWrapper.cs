@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 
 namespace ATC.config
@@ -27,9 +28,10 @@ namespace ATC.config
 				{
 					settings = (ATCSettings)JsonConvert.DeserializeObject(json, typeof(ATCSettings));
 				}
-				catch
+				catch (Exception e)
 				{
 					logger.log("ATC", "Could not load Config-File");
+					logger.log("ATC", "    " + e.Message);
 				}
 			}
 			else

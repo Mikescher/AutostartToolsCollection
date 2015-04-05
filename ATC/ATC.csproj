@@ -53,6 +53,7 @@
     <Compile Include="config\ATCSettings.cs" />
     <Compile Include="config\AWCSettings.cs" />
     <Compile Include="config\ConfigWrapper.cs" />
+    <Compile Include="config\CSESettings.cs" />
     <Compile Include="config\DIPSSettings.cs" />
     <Compile Include="config\SettingsModule.cs" />
     <Compile Include="config\TVCSettings.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="modules\AWC\ScreenHelper.cs" />
     <Compile Include="modules\AWC\WallpaperJoiner.cs" />
     <Compile Include="modules\AWC\WindowsWallpaperAPI.cs" />
+    <Compile Include="modules\CSE\CronScriptExecutor.cs" />
     <Compile Include="modules\DIPS\DesktopIconPositionSaver.cs" />
     <Compile Include="modules\DIPS\ScreenHelper.cs" />
     <Compile Include="modules\DIPS\StringHashing.cs" />

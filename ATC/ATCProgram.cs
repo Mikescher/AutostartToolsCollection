@@ -30,6 +30,7 @@ namespace ATC
 			AutoWallChange awc = new AutoWallChange(logger, config.settings.awc, workingDirectory);
 			DesktopIconPositionSaver dips = new DesktopIconPositionSaver(logger, config.settings.dips, workingDirectory);
 			TextVersionControl tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
+			CronScriptExecutor cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
 
 			awc.start();
 			Thread.Sleep(500);
@@ -38,6 +39,9 @@ namespace ATC
 			Thread.Sleep(500);
 
 			tvc.start();
+			Thread.Sleep(500);
+
+			cse.start();
 			Thread.Sleep(500);
 
 			config.save();
