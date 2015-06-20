@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ATC.config;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -8,12 +9,14 @@ namespace ATC.modules.AWC
 	{
 		private const int TUX_OFFSET = 4;
 
-		private MonitorConstellation constellation;
+        private MonitorConstellation constellation;
+        private AWCSettings Settings;
 
-		public WallpaperJoiner(MonitorConstellation mc)
+        public WallpaperJoiner(MonitorConstellation mc, AWCSettings s)
 		{
 			constellation = mc;
-		}
+            Settings = s;
+        }
 
 		public Image Join(Image primary, Image secondary = null, Image tux = null)
 		{
@@ -41,7 +44,7 @@ namespace ATC.modules.AWC
 
 			Bitmap result = new Bitmap(bounds.Width, bounds.Height);
 
-			int tux_x = bounds.Width - tux.Width - TUX_OFFSET;
+			int tux_x = (1280 + Settings.HD1080_SXGA_Offset) - tux.Width - TUX_OFFSET;
 			int tux_y = bounds.Height - tux.Height - TUX_OFFSET;
 
 			using (var graphics = Graphics.FromImage(result))
@@ -49,7 +52,7 @@ namespace ATC.modules.AWC
 				graphics.FillRectangle(Brushes.Black, bounds);
 
 				graphics.DrawImage(primary, 0, 0, 1920, 1080);
-				graphics.DrawImage(secondary, 1920 - 1280, 1080, 1280, 1024);
+				graphics.DrawImage(secondary, Settings.HD1080_SXGA_Offset, 1080, 1280, 1024);
 				graphics.DrawImage(tux, tux_x, tux_y, tux.Width, tux.Height);
 			}
 

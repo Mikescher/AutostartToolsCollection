@@ -10,5 +10,7 @@ namespace ATC.config
 		public string pathWallpaperLD_normal = "";
 		public string pathWallpaperTUX = "";
 		public string pathWallpaper = "";
-	}
+
+        public int HD1080_SXGA_Offset = 0;
+    }
 }

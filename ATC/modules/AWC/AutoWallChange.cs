@@ -174,7 +174,7 @@ namespace ATC.modules.AWC
 			log("[HD1080]  Images Excluded: " + excluded);
 			log("[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
 
-			WallpaperJoiner joiner = new WallpaperJoiner(MonitorConstellation.Dual_HD1080_HD1080);
+			WallpaperJoiner joiner = new WallpaperJoiner(MonitorConstellation.Dual_HD1080_HD1080, settings);
 			Image final = joiner.Join(i1, i2);
 
 			final.Save(settings.pathWallpaper, ImageFormat.Bmp);
@@ -246,7 +246,7 @@ namespace ATC.modules.AWC
 			log("[ TUX  ]  Images Found:    " + found);
 			log("[ TUX  ]  Image Choosen:   " + Path.GetFileName(choosen));
 
-			WallpaperJoiner joiner = new WallpaperJoiner(MonitorConstellation.Dual_HD1080_SXGA);
+			WallpaperJoiner joiner = new WallpaperJoiner(MonitorConstellation.Dual_HD1080_SXGA, settings);
 			Image final = joiner.Join(i1, i2, i3);
 
 			final.Save(settings.pathWallpaper, ImageFormat.Bmp);
