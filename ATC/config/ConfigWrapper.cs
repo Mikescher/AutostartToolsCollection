@@ -47,7 +47,10 @@ namespace ATC.config
 			Directory.CreateDirectory(workingDirectory);
 
 			string path = Path.Combine(workingDirectory, logfilename);
-			string json = JsonConvert.SerializeObject(settings, Formatting.Indented);
+			string json = JsonConvert.SerializeObject(settings, Formatting.Indented, new JsonSerializerSettings()
+			{
+				NullValueHandling = NullValueHandling.Ignore
+			});
 
 			File.WriteAllText(path, json);
 		}

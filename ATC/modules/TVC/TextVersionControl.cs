@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace ATC.modules.TVC
 {
@@ -40,7 +42,7 @@ namespace ATC.modules.TVC
 				return;
 			}
 
-			foreach (string file in settings.paths)
+			foreach (var file in settings.paths)
 			{
 				if (settings.cleanHistory)
 					cleanUpHistory(file);
@@ -64,17 +66,43 @@ namespace ATC.modules.TVC
 				return false;
 		}
 
-		private void vcontrolfile(string file)
+		private void vcontrolfile(TVCEntry file)
 		{
-			if (!File.Exists(file))
+			if (!File.Exists(file.path))
 			{
-				log(String.Format(@"File {0} does not exist", file));
+				log(String.Format(@"File {0} does not exist", file.path));
 				return;
 			}
 
-			string current = File.ReadAllText(file);
+			string current = File.ReadAllText(file.path);
 
-			string outputpath = Path.Combine(settings.output, Path.GetFileName(file));
+			if (file.jpath != null)
+			{
+				try
+				{
+					current = extractJPath(current, file.jpath);
+				}
+				catch (Exception ex)
+				{
+					log(string.Format(@"ERROR extracting content via jpath:\r\n\r\n{0}", ex.Message));
+					return;
+				}
+			}
+
+			if (file.formatOutput)
+			{
+				try
+				{
+					current = formatText(current, Path.GetExtension(file.path).TrimStart('.'));
+				}
+                catch (Exception ex)
+				{
+					log(string.Format(@"ERROR formatting content:\r\n\r\n{0}", ex.Message));
+					return;
+				}
+			}
+
+			string outputpath = file.GetOutputPath(settings);
 			Directory.CreateDirectory(outputpath);
 
 			string filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.txt", startTime);
@@ -88,7 +116,7 @@ namespace ATC.modules.TVC
 			}
 
 			List<string> versions = Directory.EnumerateFiles(outputpath).
-				Where(p => IsValidDateTimeFileName(p)).
+				Where(IsValidDateTimeFileName).
 				OrderByDescending(p => DateTime.ParseExact(Path.GetFileNameWithoutExtension(p), "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture)).
 				ToList();
 
@@ -99,42 +127,74 @@ namespace ATC.modules.TVC
 			if (versions.Count > 0)
 				last = File.ReadAllText(versions[0]);
 
-			string last_hash = StringHashing.CalculateMD5Hash(last);
-			string curr_hash = StringHashing.CalculateMD5Hash(current);
+			string lastHash = StringHashing.CalculateMD5Hash(last);
+			string currHash = StringHashing.CalculateMD5Hash(current);
 
-			if (last_hash != curr_hash)
+			if (lastHash != currHash)
 			{
-				log(String.Format("File {0} differs from last Version - copying current version", Path.GetFileName(file)));
-				log(String.Format("MD5 Current File: {0}", curr_hash));
-				log(String.Format("MD5 Previous File: {0}", last_hash));
+				log(String.Format("File {0} differs from last Version - copying current version", file.GetFoldername()));
+				log(String.Format("MD5 Current File:  {0}", currHash));
+				log(String.Format("MD5 Previous File: {0}", lastHash));
 
 				try
 				{
-					File.Copy(file, filepath, false);
-					log(string.Format(@"File '{0}' succesfully copied to '{1}'", file, filepath));
+					if (file.jpath != null || file.formatOutput)
+					{
+						File.WriteAllText(filepath, current, Encoding.UTF8);
+						log(string.Format(@"File '{0}' succesfully written to '{1}' (UTF-8)", file.GetFoldername(), filepath));
+					}
+					else
+					{
+						File.Copy(file.path, filepath, false);
+						log(string.Format(@"File '{0}' succesfully copied to '{1}'", file.GetFoldername(), filepath));
+					}
 				}
 				catch (Exception ex)
 				{
-					log(string.Format(@"ERROR copying File '{0}' to '{1}' : {2}", file, filepath, ex.Message));
+					log(string.Format(@"ERROR copying File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
 				}
 			}
 			else
 			{
-				log(String.Format("File {0} remains unchanged (MD5: {1})", Path.GetFileName(file), curr_hash));
+				log(String.Format("File {0} remains unchanged (MD5: {1})", file.GetFoldername(), currHash));
 			}
 		}
 
-		private void cleanUpHistory(string file)
+		private string formatText(string current, string type)
 		{
-			string outputpath = Path.Combine(settings.output, Path.GetFileName(file));
+			if (type.ToLower() == "json")
+			{
+				return JObject.Parse(current).ToString(Newtonsoft.Json.Formatting.Indented);
+			}
+			else
+			{
+				throw new Exception("Can't format filetype " + type);
+			}
+        }
+
+		private string extractJPath(string current, List<string> jpath)
+		{
+			JToken jccurrent = JObject.Parse(current);
+
+			foreach (var node in jpath)
+			{
+				jccurrent = ((JObject)jccurrent).GetValue(node);
+			}
+
+			return jccurrent.ToString();
+		}
+
+		private void cleanUpHistory(TVCEntry file)
+		{
+			string outputpath = file.GetOutputPath(settings);
 			Directory.CreateDirectory(outputpath);
 
 			List<string> versions = Directory.EnumerateFiles(outputpath).
-				Where(p => IsValidDateTimeFileName(p)).
+				Where(IsValidDateTimeFileName).
 				OrderByDescending(p => DateTime.ParseExact(Path.GetFileNameWithoutExtension(p), "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture)).
 				ToList();
 
-			List<string> contents = versions.Select(p => File.ReadAllText(p)).ToList();
+			List<string> contents = versions.Select(File.ReadAllText).ToList();
 
 			List<int> deletions = new List<int>();
 
@@ -149,7 +209,7 @@ namespace ATC.modules.TVC
 			for (int i = deletions.Count - 1; i >= 0; i--)
 			{
 				log(string.Format("Cleaned up duplicate Entry in History for {0}: {1}",
-					Path.GetFileNameWithoutExtension(file),
+					Path.GetFileNameWithoutExtension(file.GetFoldername()),
 					Path.GetFileNameWithoutExtension(versions[deletions[i]])));
 
 				File.Delete(versions[deletions[i]]);
