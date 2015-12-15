@@ -12,7 +12,7 @@ namespace ATC.modules.TVC
 {
 	public class TextVersionControl : ATCModule
 	{
-		private TVCSettings settings { get { return (TVCSettings)settings_base; } }
+		private TVCSettings settings { get { return (TVCSettings)SettingsBase; } }
 
 		public TextVersionControl(ATCLogger l, TVCSettings s, string wd)
 			: base(l, s, wd, "TVC")
@@ -20,25 +20,25 @@ namespace ATC.modules.TVC
 			// NOP
 		}
 
-		public override void start()
+		public override void Start()
 		{
-			logHeader("TextVersionControl");
+			LogHeader("TextVersionControl");
 
 			if (!settings.TVC_enabled)
 			{
-				log("TVC not enabled.");
+				Log("TVC not enabled.");
 				return;
 			}
 
 			if (string.IsNullOrWhiteSpace(settings.output))
 			{
-				log("Outputpath not set.");
+				Log("Outputpath not set.");
 				return;
 			}
 
 			if (settings.paths.Count == 0)
 			{
-				log("No files in control");
+				Log("No files in control");
 				return;
 			}
 
@@ -49,7 +49,7 @@ namespace ATC.modules.TVC
 
 				vcontrolfile(file);
 
-				log();
+				Log();
 			}
 		}
 
@@ -70,7 +70,7 @@ namespace ATC.modules.TVC
 		{
 			if (!File.Exists(file.path))
 			{
-				log(String.Format(@"File {0} does not exist", file.path));
+				Log(String.Format(@"File {0} does not exist", file.path));
 				return;
 			}
 
@@ -84,7 +84,7 @@ namespace ATC.modules.TVC
 				}
 				catch (Exception ex)
 				{
-					log(string.Format(@"ERROR extracting content via jpath:\r\n\r\n{0}", ex.Message));
+					Log(string.Format(@"ERROR extracting content via jpath:\r\n\r\n{0}", ex.Message));
 					return;
 				}
 			}
@@ -97,7 +97,7 @@ namespace ATC.modules.TVC
 				}
                 catch (Exception ex)
 				{
-					log(string.Format(@"ERROR formatting content:\r\n\r\n{0}", ex.Message));
+					Log(string.Format(@"ERROR formatting content:\r\n\r\n{0}", ex.Message));
 					return;
 				}
 			}
@@ -105,13 +105,13 @@ namespace ATC.modules.TVC
 			string outputpath = file.GetOutputPath(settings);
 			Directory.CreateDirectory(outputpath);
 
-			string filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.txt", startTime);
+			string filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.txt", StartTime);
 
 			string filepath = Path.Combine(outputpath, filename);
 
 			if (File.Exists(filepath))
 			{
-				log(String.Format(@"File {0} does already exist in ouput directory", filepath));
+				Log(String.Format(@"File {0} does already exist in ouput directory", filepath));
 				return;
 			}
 
@@ -132,31 +132,31 @@ namespace ATC.modules.TVC
 
 			if (lastHash != currHash)
 			{
-				log(String.Format("File {0} differs from last Version - copying current version", file.GetFoldername()));
-				log(String.Format("MD5 Current File:  {0}", currHash));
-				log(String.Format("MD5 Previous File: {0}", lastHash));
+				Log(String.Format("File {0} differs from last Version - copying current version", file.GetFoldername()));
+				Log(String.Format("MD5 Current File:  {0}", currHash));
+				Log(String.Format("MD5 Previous File: {0}", lastHash));
 
 				try
 				{
 					if (file.jpath != null || file.formatOutput)
 					{
 						File.WriteAllText(filepath, current, Encoding.UTF8);
-						log(string.Format(@"File '{0}' succesfully written to '{1}' (UTF-8)", file.GetFoldername(), filepath));
+						Log(string.Format(@"File '{0}' succesfully written to '{1}' (UTF-8)", file.GetFoldername(), filepath));
 					}
 					else
 					{
 						File.Copy(file.path, filepath, false);
-						log(string.Format(@"File '{0}' succesfully copied to '{1}'", file.GetFoldername(), filepath));
+						Log(string.Format(@"File '{0}' succesfully copied to '{1}'", file.GetFoldername(), filepath));
 					}
 				}
 				catch (Exception ex)
 				{
-					log(string.Format(@"ERROR copying File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
+					Log(string.Format(@"ERROR copying File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
 				}
 			}
 			else
 			{
-				log(String.Format("File {0} remains unchanged (MD5: {1})", file.GetFoldername(), currHash));
+				Log(String.Format("File {0} remains unchanged (MD5: {1})", file.GetFoldername(), currHash));
 			}
 		}
 
@@ -208,7 +208,7 @@ namespace ATC.modules.TVC
 
 			for (int i = deletions.Count - 1; i >= 0; i--)
 			{
-				log(string.Format("Cleaned up duplicate Entry in History for {0}: {1}",
+				Log(string.Format("Cleaned up duplicate Entry in History for {0}: {1}",
 					Path.GetFileNameWithoutExtension(file.GetFoldername()),
 					Path.GetFileNameWithoutExtension(versions[deletions[i]])));
 

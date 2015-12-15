@@ -10,10 +10,10 @@ namespace ATC
 {
 	public class ATCProgram
 	{
-		private string workingDirectory;
+		private readonly string workingDirectory;
 
-		private ATCLogger logger;
-		private ConfigWrapper config;
+		private readonly ATCLogger logger;
+		private readonly ConfigWrapper config;
 
 		public ATCProgram()
 		{
@@ -32,16 +32,16 @@ namespace ATC
 			TextVersionControl tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
 			CronScriptExecutor cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
 
-			awc.start();
+			awc.Start();
 			Thread.Sleep(500);
 
-			dips.start();
+			dips.Start();
 			Thread.Sleep(500);
 
-			tvc.start();
+			tvc.Start();
 			Thread.Sleep(500);
 
-			cse.start();
+			cse.Start();
 			Thread.Sleep(500);
 
 			config.save();

@@ -13,7 +13,7 @@ namespace ATC.modules.DIPS
 {
 	public class DesktopIconPositionSaver : ATCModule
 	{
-		private DIPSSettings settings { get { return (DIPSSettings)settings_base; } }
+		private DIPSSettings settings { get { return (DIPSSettings)SettingsBase; } }
 
 		public DesktopIconPositionSaver(ATCLogger l, DIPSSettings s, string wd)
 			: base(l, s, wd, "DIPS")
@@ -21,19 +21,19 @@ namespace ATC.modules.DIPS
 
 		}
 
-		public override void start()
+		public override void Start()
 		{
-			logHeader("DesktopIconPositionSaver");
+			LogHeader("DesktopIconPositionSaver");
 
 			if (!settings.DIPS_enabled)
 			{
-				log("DIPS not enabled.");
+				Log("DIPS not enabled.");
 				return;
 			}
 
 			LVItem[] dicons = RemoteListView.GetDesktopListView();
 
-			log(String.Format(@"Found {0} Icons on Desktop", dicons.Length));
+			Log(String.Format(@"Found {0} Icons on Desktop", dicons.Length));
 
 			JObject iconsav = new JObject();
 
@@ -115,15 +115,15 @@ namespace ATC.modules.DIPS
 
 		private void vcontrolIconSav(string iconsav_content)
 		{
-			string outputDirectory = Path.Combine(workingDirectory, "history");
+			string outputDirectory = Path.Combine(WorkingDirectory, "history");
 			Directory.CreateDirectory(outputDirectory);
 
-			string filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.json", startTime);
+			string filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.json", StartTime);
 			string filepath = Path.Combine(outputDirectory, filename);
 
 			if (File.Exists(filepath))
 			{
-				log(String.Format(@"File {0} does already exist in DIPS/history directory", filepath));
+				Log(String.Format(@"File {0} does already exist in DIPS/history directory", filepath));
 				return;
 			}
 
@@ -142,25 +142,25 @@ namespace ATC.modules.DIPS
 
 			if (last_hash != curr_hash)
 			{
-				log(String.Format("Desktop Icons differ from last Version - creating new Entry"));
-				log();
-				log(String.Format("MD5 Current File: {0}", curr_hash));
-				log(String.Format("MD5 Previous File: {0}", last_hash));
-				log();
+				Log(String.Format("Desktop Icons differ from last Version - creating new Entry"));
+				Log();
+				Log(String.Format("MD5 Current File: {0}", curr_hash));
+				Log(String.Format("MD5 Previous File: {0}", last_hash));
+				Log();
 
 				try
 				{
 					File.WriteAllText(filepath, iconsav_content);
-					log(string.Format(@"Desktop icons succesfully backuped to '{0}'", filepath));
+					Log(string.Format(@"Desktop icons succesfully backuped to '{0}'", filepath));
 				}
 				catch (Exception ex)
 				{
-					log(string.Format(@"ERROR backuping icons to '{0}' : {1}", filepath, ex.Message));
+					Log(string.Format(@"ERROR backuping icons to '{0}' : {1}", filepath, ex.Message));
 				}
 			}
 			else
 			{
-				log(String.Format("No changes in desktop icons detected (MD5: {0})", curr_hash));
+				Log(String.Format("No changes in desktop icons detected (MD5: {0})", curr_hash));
 			}
 		}
 	}

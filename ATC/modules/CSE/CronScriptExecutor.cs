@@ -3,12 +3,14 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ATC.modules.TVC
 {
 	public class CronScriptExecutor : ATCModule
 	{
-		private CSESettings settings { get { return (CSESettings)settings_base; } }
+		private CSESettings settings { get { return (CSESettings)SettingsBase; } }
 
 		public CronScriptExecutor(ATCLogger l, CSESettings s, string wd)
 			: base(l, s, wd, "CSE")
@@ -16,40 +18,137 @@ namespace ATC.modules.TVC
 			// NOP
 		}
 
-		public override void start()
+		public override void Start()
 		{
-			logHeader("CronScriptExecutor");
+			LogHeader("CronScriptExecutor");
 
 			if (!settings.CSE_enabled)
 			{
-				log("CSE not enabled.");
+				Log("CSE not enabled.");
 				return;
 			}
 
-			foreach (string script in settings.scripts)
+			if (settings.parallel)
 			{
-				log("Execute " + Path.GetFileName(script));
-
-				executeScript(script);
-
-				log();
+				ExecuteParallel(settings.scripts);
+				Log();
 			}
+			else
+			{
+				foreach (var script in settings.scripts)
+				{
+					Log("Execute " + script.Name);
+
+					ExecuteScript(script);
+					Log();
+				}
+			}
+
 		}
 
-		private void executeScript(string file)
+		private void ExecuteParallel(List<CSEEntry> scripts)
 		{
-			if (!File.Exists(file))
+			if (! scripts.Any()) return;
+
+			int timeout = scripts.Max(p => p.timeout);
+
+			List<Process> processes = new List<Process>();
+			var entryDict = new Dictionary<Process, CSEEntry>();
+			try
 			{
-				log(String.Format(@"File {0} does not exist", file));
+				foreach (var entry in scripts)
+				{
+					if (!File.Exists(entry.path))
+					{
+						Log(string.Format(@"Script {0} does not exist - skipping execution", entry.path));
+						continue;
+					}
+
+					var start = new ProcessStartInfo
+					{
+						FileName = entry.path,
+						UseShellExecute = true
+					};
+					if (entry.hideConsole) start.WindowStyle = ProcessWindowStyle.Hidden;
+
+					var proc = Process.Start(start);
+					if (proc != null)
+					{
+						processes.Add(proc);
+						entryDict.Add(proc, entry);
+					}
+					else
+					{
+						Log(string.Format(@"Process creation failed for {0}", entry.Name));
+					}
+				}
+				
+				int ltime = timeout;
+				while (ltime > 0 && processes.Any())
+				{
+					Thread.Sleep(32);
+					ltime -= 32;
+
+					foreach (var finProc in processes.Where(p => p.HasExited).ToList())
+					{
+						Log("Process " + entryDict[finProc].Name +" finished.");
+						processes.Remove(finProc);
+
+						finProc.Dispose();
+					}
+				}
+
+				foreach (var errProc in processes)
+				{
+					Log(entryDict[errProc].Name + " Process still running - continue ATC...");
+				}
+
+				if (!processes.Any())
+				{
+					Log("All processes finished");
+				}
+			}
+			finally
+			{
+				foreach (var proc in processes.Where(p => p != null))
+				{
+					try
+					{
+						proc.Dispose();
+					}
+					catch (Exception)
+					{
+						 /* swallow */
+					}
+				}
+			}
+
+		}
+
+		private void ExecuteScript(CSEEntry entry)
+		{
+			if (!File.Exists(entry.path))
+			{
+				Log(string.Format(@"File {0} does not exist", entry.path));
 				return;
 			}
 
-			ProcessStartInfo start = new ProcessStartInfo();
-			start.FileName = file;
-			start.UseShellExecute = true;
+			var start = new ProcessStartInfo
+			{
+				FileName = entry.path,
+				UseShellExecute = true
+			};
+			if (entry.hideConsole) start.WindowStyle = ProcessWindowStyle.Hidden;
+
 			using (Process process = Process.Start(start))
 			{
-				int ltime = settings.timeout;
+				if (process == null)
+				{
+					Log(string.Format(@"Process creation failed for {0}", entry.Name));
+					return;
+				}
+
+				int ltime = entry.timeout;
 				while (ltime > 0 && !process.HasExited)
 				{
 					Thread.Sleep(50);
@@ -58,11 +157,11 @@ namespace ATC.modules.TVC
 
 				if (process.HasExited)
 				{
-					log("Process finished.");
+					Log("Process finished.");
 				}
 				else
 				{
-					log("Process still running - continue ATC...");
+					Log("Process still running - continue ATC...");
 				}
 			}
 		}

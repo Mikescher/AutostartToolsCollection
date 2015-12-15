@@ -6,46 +6,46 @@ namespace ATC
 {
 	public abstract class ATCModule
 	{
-		private ATCLogger logger;
-		private string modulename;
+		private readonly ATCLogger logger;
+		private readonly string modulename;
 
-		protected SettingsModule settings_base;
-		protected string workingDirectory;
-		protected DateTime startTime;
+		protected readonly SettingsModule SettingsBase;
+		protected readonly string WorkingDirectory;
+		protected DateTime StartTime;
 
-		public ATCModule(ATCLogger l, SettingsModule s, string wd, string m)
+		protected ATCModule(ATCLogger l, SettingsModule s, string wd, string m)
 		{
 			logger = l;
-			settings_base = s;
+			SettingsBase = s;
 			modulename = m;
-			workingDirectory = Path.Combine(wd, modulename);
-			Directory.CreateDirectory(workingDirectory);
-			startTime = DateTime.Now;
+			WorkingDirectory = Path.Combine(wd, modulename);
+			Directory.CreateDirectory(WorkingDirectory);
+			StartTime = DateTime.Now;
 		}
 
-		protected void log(string text = "")
+		protected void Log(string text = "")
 		{
 			logger.log(modulename, text);
 		}
 
-		protected void logHeader(string fullname)
+		protected void LogHeader(string fullname)
 		{
-			string r_l = new String('#', ((79 - 4 - fullname.Length) / 2));
-			string r_r = new String('#', (79 - 4 - fullname.Length - r_l.Length));
+			string rL = new string('#', ((79 - 4 - fullname.Length) / 2));
+			string rR = new string('#', (79 - 4 - fullname.Length - rL.Length));
 
-			string date = String.Format(@"Date: {0}", startTime.ToString("R"));
-			string d_l = new String(' ', ((79 - 2 - date.Length) / 2));
-			string d_r = new String(' ', (79 - 2 - date.Length - d_l.Length));
+			string date = string.Format(@"Date: {0}", StartTime.ToString("R"));
+			string dL = new string(' ', ((79 - 2 - date.Length) / 2));
+			string dR = new string(' ', (79 - 2 - date.Length - dL.Length));
 
-			log();
-			log(String.Format(@"{0}  {1}  {2}", r_l, fullname, r_r));
-			log(String.Format("#{0}#", new String(' ', 77)));
-			log(String.Format("#{0}{1}{2}#", d_l, date, d_r));
-			log(String.Format("#{0}#", new String(' ', 77)));
-			log(new String('#', 79));
-			log();
+			Log();
+			Log(string.Format(@"{0}  {1}  {2}", rL, fullname, rR));
+			Log(string.Format("#{0}#", new string(' ', 77)));
+			Log(string.Format("#{0}{1}{2}#", dL, date, dR));
+			Log(string.Format("#{0}#", new string(' ', 77)));
+			Log(new string('#', 79));
+			Log();
 		}
 
-		public abstract void start();
+		public abstract void Start();
 	}
 }
