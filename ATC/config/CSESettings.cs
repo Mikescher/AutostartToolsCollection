@@ -15,10 +15,11 @@ namespace ATC.config
 
 	public class CSEEntry
 	{
-		public string path;
+		public string path = "";
+		public string parameter = "";
 		public int timeout = 2500;
 		public bool hideConsole = false;
 
-		public object Name => Path.GetFileName(path);
+		public object Name => (Path.GetFileName(path) + " " + parameter).Trim();
 	}
 }

@@ -1,10 +1,10 @@
 ﻿using ATC.config;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace ATC.modules.TVC
 {
@@ -58,7 +58,7 @@ namespace ATC.modules.TVC
 			{
 				foreach (var entry in scripts)
 				{
-					if (!File.Exists(entry.path))
+					if (entry.path.Contains("\\") && !File.Exists(entry.path))
 					{
 						Log(string.Format(@"Script {0} does not exist - skipping execution", entry.path));
 						continue;
@@ -127,7 +127,7 @@ namespace ATC.modules.TVC
 
 		private void ExecuteScript(CSEEntry entry)
 		{
-			if (!File.Exists(entry.path))
+			if (entry.path.Contains("\\") && !File.Exists(entry.path))
 			{
 				Log(string.Format(@"File {0} does not exist", entry.path));
 				return;
@@ -136,7 +136,8 @@ namespace ATC.modules.TVC
 			var start = new ProcessStartInfo
 			{
 				FileName = entry.path,
-				UseShellExecute = true
+				UseShellExecute = true,
+				Arguments = entry.parameter,
 			};
 			if (entry.hideConsole) start.WindowStyle = ProcessWindowStyle.Hidden;
 
