@@ -76,6 +76,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CSharpUtils\CSharpUtils.csproj">
+      <Project>{d661cd9f-8934-496d-8332-bc82aab77598}</Project>
+      <Name>CSharpUtils</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DesktopAPI\DesktopAPI.csproj">
       <Project>{d4aac464-1106-4a71-9fb3-be3bca1980f0}</Project>
       <Name>DesktopAPI</Name>

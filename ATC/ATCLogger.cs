@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ATC
 {
 	public class ATCLogger
 	{
+		private object lck = new object();
+
 		private List<Tuple<string, string>> loglist = new List<Tuple<string, string>>();
 		private string logDir;
 		private DateTime startTime;
@@ -21,8 +21,11 @@ namespace ATC
 
 		public void log(string cat, string text)
 		{
-			loglist.Add(Tuple.Create(cat, text));
-			Console.WriteLine(text);
+			lock (lck)
+			{
+				loglist.Add(Tuple.Create(cat, text));
+				Console.WriteLine(text);
+			};
 		}
 
 		private List<string> getCategories()

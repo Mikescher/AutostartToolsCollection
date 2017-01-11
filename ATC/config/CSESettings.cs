@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace ATC.config
@@ -20,6 +21,25 @@ namespace ATC.config
 		public int timeout = 2500;
 		public bool hideConsole = false;
 
-		public object Name => (Path.GetFileName(path) + " " + parameter).Trim();
+		public object Name
+		{
+			get
+			{
+				if (string.IsNullOrWhiteSpace(parameter))
+					return (Path.GetFileName(path) ?? "").Trim();
+
+				try
+				{
+					if (parameter.StartsWith("\"") && parameter.EndsWith("\""))
+						return Path.GetFileName(path) + " " + Path.GetFileName(parameter.Trim('"'));
+				}
+				catch (ArgumentException e)
+				{
+					// nothing
+				}
+
+				return (Path.GetFileName(path) + " " + parameter).Trim();
+			}
+		}
 	}
 }
