@@ -33,12 +33,19 @@ namespace ATC.config
 					if (parameter.StartsWith("\"") && parameter.EndsWith("\""))
 						return Path.GetFileName(path) + " " + Path.GetFileName(parameter.Trim('"'));
 				}
-				catch (ArgumentException e)
+				catch (ArgumentException)
 				{
 					// nothing
 				}
-
-				return (Path.GetFileName(path) + " " + parameter).Trim();
+				try
+				{
+					return (Path.GetFileName(path) + " " + parameter).Trim();
+				}
+				catch (ArgumentException)
+				{
+					// nothing
+				}
+				return path + " " + parameter;
 			}
 		}
 	}

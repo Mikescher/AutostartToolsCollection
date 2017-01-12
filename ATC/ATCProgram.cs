@@ -25,27 +25,37 @@ namespace ATC
 
 		public void start()
 		{
-			config.load(logger);
+			try
+			{
+				config.load(logger);
 
-			AutoWallChange awc = new AutoWallChange(logger, config.settings.awc, workingDirectory);
-			DesktopIconPositionSaver dips = new DesktopIconPositionSaver(logger, config.settings.dips, workingDirectory);
-			TextVersionControl tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
-			CronScriptExecutor cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
+				AutoWallChange awc = new AutoWallChange(logger, config.settings.awc, workingDirectory);
+				DesktopIconPositionSaver dips = new DesktopIconPositionSaver(logger, config.settings.dips, workingDirectory);
+				TextVersionControl tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
+				CronScriptExecutor cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
 
-			awc.Start();
-			Thread.Sleep(500);
+				awc.Start();
+				Thread.Sleep(500);
 
-			dips.Start();
-			Thread.Sleep(500);
+				dips.Start();
+				Thread.Sleep(500);
 
-			tvc.Start();
-			Thread.Sleep(500);
+				tvc.Start();
+				Thread.Sleep(500);
 
-			cse.Start();
-			Thread.Sleep(500);
+				cse.Start();
+				Thread.Sleep(500);
 
-			config.save();
-			logger.saveAll();
+				config.save();
+			}
+			catch (Exception e)
+			{
+				logger.log("ATC", "Uncaught Exception: " + e);
+			}
+			finally
+			{
+				logger.saveAll();
+			}
 		}
 	}
 }
