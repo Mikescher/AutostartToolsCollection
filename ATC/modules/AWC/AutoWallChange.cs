@@ -3,12 +3,16 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace ATC.modules.AWC
 {
 	public class AutoWallChange : ATCModule
 	{
-		private AWCSettings Settings { get { return (AWCSettings)SettingsBase; } }
+		private AWCSettings Settings => (AWCSettings) SettingsBase;
+
+		private const int TUX_OFFSET = 4;
 
 		private string exclusionfileHD1080;
 
@@ -28,13 +32,13 @@ namespace ATC.modules.AWC
 				return;
 			}
 
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaper))
+			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperFile))
 			{
-				Log("pathWallpaper not set");
+				Log("pathWallpaperFile not set");
 				return;
 			}
 
-			if (Path.GetExtension(Settings.pathWallpaper) != ".bmp")
+			if (Path.GetExtension(Settings.pathWallpaperFile) != ".bmp")
 			{
 				Log("pathWallpaper must direct to a *.bmp file");
 				return;
@@ -42,11 +46,9 @@ namespace ATC.modules.AWC
 
 			exclusionfileHD1080 = Path.Combine(WorkingDirectory, "exclusions.config");
 
-			MonitorConstellation mc = ScreenHelper.getMonitorConstellation();
+			Log("Monitor Constellation: " + GetConstellationString());
 
-			Log("Monitor Constellation: " + ScreenHelper.mcToString(mc));
-
-			if (mc == MonitorConstellation.Other)
+			if (Screen.AllScreens.Any(p => !(Eq(p, 1920, 1080) || Eq(p, 1280, 1024))))
 			{
 				Log("Unknown Monitor Constellation");
 				return;
@@ -54,204 +56,199 @@ namespace ATC.modules.AWC
 
 			Log();
 
-			bool succ = false;
-			switch (mc)
-			{
-				case MonitorConstellation.Dual_HD1080_SXGA:
-					succ = setImage_HD1080_SXGA();
-					break;
-				case MonitorConstellation.Dual_HD1080_HD1080:
-					succ = setImage_HD1080_HD1080();
-					break;
-				case MonitorConstellation.Single_HD1080:
-					succ = setImage_HD1080();
-					break;
-				case MonitorConstellation.Single_SXGA:
-					succ = setImage_SXGA();
-					break;
-				default:
-					throw new ArgumentException();
-			}
+			var img = CreateMultiMonitorImage();
 
-			if (!succ)
+			if (img == null)
+			{
+				Log("Error while creating MultiMonitor Wallpaper");
 				return;
+			}
 
-			WindowsWallpaperAPI.Set(Settings.pathWallpaper, WindowsWallpaperAPI.W_WP_Style.Tiled);
+			img.Save(Settings.pathWallpaperFile, ImageFormat.Bmp);
+
+			WindowsWallpaperAPI.Set(Settings.pathWallpaperFile, WindowsWallpaperAPI.W_WP_Style.Tiled);
 		}
 
-		private bool setImage_SXGA()
+		private string GetConstellationString() => string.Join(" -- ", Screen.AllScreens.Select(p => string.Format("[{0}x{1}]", p.Bounds.Width, p.Bounds.Height)));
+
+		private static bool Eq(Screen s, int w, int h) => s != null && s.Bounds.Width == w && s.Bounds.Height == h;
+
+		private Image CreateMultiMonitorImage()
 		{
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperLD_normal))
+			Rectangle bounds = GetScreenBounds();
+			Point offset = GetScreenOffset();
+
+			Bitmap result = new Bitmap(bounds.Width, bounds.Height);
+
+			using (var graphics = Graphics.FromImage(result))
 			{
-				Log("pathWallpaperLD_normal not set");
-				return false;
+				foreach (var screen in Screen.AllScreens)
+				{
+					var img = GetImage(screen);
+					if (img == null) return null;
+					graphics.DrawImage(img, screen.Bounds.Location.X + offset.X, screen.Bounds.Location.Y + offset.Y, screen.Bounds.Width, screen.Bounds.Height);
+				}
 			}
 
-			RandomImageAccessor r = new RandomImageAccessor(Settings.pathWallpaperLD_normal);
+			result = TileImageY(result, bounds, offset);
+			result = TileImageX(result, bounds, offset);
 
-			int found, excluded;
-			string choosen;
-
-			Image i = r.getRandomImage(out found, out excluded, out choosen);
-
-			if (i == null)
-			{
-				Log("No Images found.");
-				return false;
-			}
-
-			Log("[ SXGA ]  Images Found:    " + found);
-			Log("[ SXGA ]  Image Choosen:   " + Path.GetFileName(choosen));
-
-			i.Save(Settings.pathWallpaper, ImageFormat.Bmp);
-
-			return true;
+			return result;
 		}
 
-		private bool setImage_HD1080()
+		private Point GetScreenOffset()
 		{
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperHD))
+			int minX = Screen.PrimaryScreen.Bounds.X;
+			int minY = Screen.PrimaryScreen.Bounds.Y;
+
+			foreach (var b in Screen.AllScreens.Select(p => p.Bounds))
 			{
-				Log("pathWallpaperHD not set");
-				return false;
+				minX = Math.Min(minX, b.X);
+				minY = Math.Min(minY, b.Y);
 			}
 
-			int found, excluded;
-			string choosen;
-
-			RandomImageAccessor r = new RandomImageAccessor(Settings.pathWallpaperHD, exclusionfileHD1080);
-			Image i = r.getRandomImage(out excluded, out found, out choosen);
-
-			if (i == null)
-			{
-				Log("No Images found.");
-				return false;
-			}
-
-			Log("[HD1080]  Images Found:    " + found);
-			Log("[HD1080]  Images Excluded: " + excluded);
-			Log("[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
-
-			i.Save(Settings.pathWallpaper, ImageFormat.Bmp);
-
-			return true;
+			return new Point(-minX, -minY);
 		}
 
-		private bool setImage_HD1080_HD1080()
+		private Rectangle GetScreenBounds()
 		{
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperHD))
+			int minX = Screen.PrimaryScreen.Bounds.X;
+			int minY = Screen.PrimaryScreen.Bounds.Y;
+
+			int maxX = Screen.PrimaryScreen.Bounds.Right;
+			int maxY = Screen.PrimaryScreen.Bounds.Bottom;
+
+			foreach (var b in Screen.AllScreens.Select(p => p.Bounds))
 			{
-				Log("pathWallpaperHD not set");
-				return false;
+				minX = Math.Min(minX, b.X);
+				minY = Math.Min(minY, b.Y);
+
+				maxX = Math.Max(maxX, b.Right);
+				maxY = Math.Max(maxY, b.Bottom);
 			}
-
-			int found, excluded;
-			string choosen;
-
-			RandomImageAccessor r = new RandomImageAccessor(Settings.pathWallpaperHD, exclusionfileHD1080);
-			Image i1 = r.getRandomImage(out excluded, out found, out choosen);
-
-			if (i1 == null)
-			{
-				Log("No Images found.");
-				return false;
-			}
-			Log("[HD1080]  Images Found:    " + found);
-			Log("[HD1080]  Images Excluded: " + excluded);
-			Log("[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
-
-			Log();
-
-			RandomImageAccessor r2 = new RandomImageAccessor(Settings.pathWallpaperHD, exclusionfileHD1080);
-			Image i2 = r.getRandomImage(out excluded, out found, out choosen);
-
-			if (i2 == null)
-			{
-				Log("No Images found.");
-				return false;
-			}
-			Log("[HD1080]  Images Found:    " + found);
-			Log("[HD1080]  Images Excluded: " + excluded);
-			Log("[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
-
-			WallpaperJoiner joiner = new WallpaperJoiner(MonitorConstellation.Dual_HD1080_HD1080, Settings);
-			Image final = joiner.Join(i1, i2);
-
-			final.Save(Settings.pathWallpaper, ImageFormat.Bmp);
-
-			return true;
+			
+			return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 		}
 
-		private bool setImage_HD1080_SXGA()
+		private Image GetImage(Screen screen)
 		{
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperHD))
+			if (Eq(screen, 1920, 1080))
 			{
-				Log("pathWallpaperHD not set");
-				return false;
+				int found, excluded;
+				string choosen;
+
+				RandomImageAccessor r = new RandomImageAccessor(Settings.pathWallpaperHD, Settings.PseudoRandom ? exclusionfileHD1080 : null);
+				Image i1 = r.getRandomImage(out excluded, out found, out choosen);
+
+				if (i1 == null)
+				{
+					Log("No Images found.");
+					return null;
+				}
+				Log("[HD1080]  Images Found:    " + found);
+				Log("[HD1080]  Images Excluded: " + excluded);
+				Log("[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
+
+				Log();
+
+				return i1;
 			}
 
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperLD_background))
+			if (Eq(screen, 1280, 1024))
 			{
-				Log("pathWallpaperLD_background not set");
-				return false;
+				int found, excluded;
+				string choosen;
+
+				RandomImageAccessor r2 = new RandomImageAccessor(Settings.pathWallpaperLD);
+				Image i2 = r2.getRandomImage(out excluded, out found, out choosen);
+
+				if (i2 == null)
+				{
+					Log("No Images found.");
+					return null;
+				}
+
+				Log("[ SXGA ]  Images Found:    " + found);
+				Log("[ SXGA ]  Image Choosen:   " + Path.GetFileName(choosen));
+
+				Log();
+
+				if (!Settings.EnableSXGATux) return i2;
+
+				RandomImageAccessor r3 = new RandomImageAccessor(Settings.pathWallpaperTUX);
+				Image i3 = r3.getRandomImage(out excluded, out found, out choosen);
+
+				if (i3 == null)
+				{
+					Log("No Images found.");
+					return null;
+				}
+
+				Log("[ TUX  ]  Images Found:    " + found);
+				Log("[ TUX  ]  Image Choosen:   " + Path.GetFileName(choosen));
+
+				return MakeTuxImage(i2, i3);
 			}
 
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperTUX))
+			return null;
+		}
+
+		private Image MakeTuxImage(Image bg, Image tux)
+		{
+			using (var graphics = Graphics.FromImage(bg))
 			{
-				Log("pathWallpaperTUX not set");
-				return false;
+				graphics.DrawImage(tux, bg.Width - tux.Width - TUX_OFFSET, bg.Height - tux.Height - TUX_OFFSET, tux.Width, tux.Height);
 			}
 
-			int found, excluded;
-			string choosen;
+			return bg;
+		}
 
-			RandomImageAccessor r1 = new RandomImageAccessor(Settings.pathWallpaperHD, exclusionfileHD1080);
-			Image i1 = r1.getRandomImage(out excluded, out found, out choosen);
+		private Bitmap TileImageY(Bitmap img, Rectangle bounds, Point offset)
+		{
+			Bitmap result = new Bitmap(bounds.Width, bounds.Height);
 
-			if (i1 == null)
+			if (offset.Y <= 0) return img;
+
+			using (var graphics = Graphics.FromImage(result))
 			{
-				Log("No Images found.");
-				return false;
-			}
-			Log("[HD1080]  Images Found:    " + found);
-			Log("[HD1080]  Images Excluded: " + excluded);
-			Log("[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
+				graphics.DrawImage(
+					img,
+					new Rectangle(0, bounds.Height - offset.Y, bounds.Width, offset.Y),
+					new Rectangle(0, 0,                        bounds.Width, offset.Y),
+					GraphicsUnit.Pixel);
 
-			Log();
-
-			RandomImageAccessor r2 = new RandomImageAccessor(Settings.pathWallpaperLD_background);
-			Image i2 = r2.getRandomImage(out excluded, out found, out choosen);
-
-			if (i2 == null)
-			{
-				Log("No Images found.");
-				return false;
+				graphics.DrawImage(
+					img,
+					new Rectangle(0, 0,        bounds.Width, bounds.Height - offset.Y),
+					new Rectangle(0, offset.Y, bounds.Width, bounds.Height - offset.Y),
+					GraphicsUnit.Pixel);
 			}
 
-			Log("[ SXGA ]  Images Found:    " + found);
-			Log("[ SXGA ]  Image Choosen:   " + Path.GetFileName(choosen));
+			return result;
+		}
 
-			Log();
+		private Bitmap TileImageX(Bitmap img, Rectangle bounds, Point offset)
+		{
+			Bitmap result = new Bitmap(bounds.Width, bounds.Height);
 
-			RandomImageAccessor r3 = new RandomImageAccessor(Settings.pathWallpaperTUX);
-			Image i3 = r3.getRandomImage(out excluded, out found, out choosen);
+			if (offset.X <= 0) return img;
 
-			if (i3 == null)
+			using (var graphics = Graphics.FromImage(result))
 			{
-				Log("No Images found.");
-				return false;
+				graphics.DrawImage(
+					img,
+					new Rectangle(bounds.Width - offset.X, 0, offset.X, bounds.Height),
+					new Rectangle(0,                       0, offset.X, bounds.Height),
+					GraphicsUnit.Pixel);
+
+				graphics.DrawImage(
+					img,
+					new Rectangle(0,        0, bounds.Width - offset.X, bounds.Height),
+					new Rectangle(offset.X, 0, bounds.Width - offset.X, bounds.Height),
+					GraphicsUnit.Pixel);
 			}
 
-
-			Log("[ TUX  ]  Images Found:    " + found);
-			Log("[ TUX  ]  Image Choosen:   " + Path.GetFileName(choosen));
-
-			WallpaperJoiner joiner = new WallpaperJoiner(MonitorConstellation.Dual_HD1080_SXGA, Settings);
-			Image final = joiner.Join(i1, i2, i3);
-
-			final.Save(Settings.pathWallpaper, ImageFormat.Bmp);
-
-			return true;
+			return result;
 		}
 	}
 }

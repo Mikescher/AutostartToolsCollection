@@ -19,7 +19,7 @@ namespace ATC
 
 			try
 			{
-				prog.start();
+				prog.Start();
 			}
 			catch (Exception e)
 			{

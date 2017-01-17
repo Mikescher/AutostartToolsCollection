@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ATC</RootNamespace>
     <AssemblyName>ATC</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -60,8 +61,6 @@
     <Compile Include="modules\ATCModule.cs" />
     <Compile Include="modules\AWC\AutoWallChange.cs" />
     <Compile Include="modules\AWC\RandomImageAccessor.cs" />
-    <Compile Include="modules\AWC\ScreenHelper.cs" />
-    <Compile Include="modules\AWC\WallpaperJoiner.cs" />
     <Compile Include="modules\AWC\WindowsWallpaperAPI.cs" />
     <Compile Include="modules\CSE\CronScriptExecutor.cs" />
     <Compile Include="modules\DIPS\DesktopIconPositionSaver.cs" />

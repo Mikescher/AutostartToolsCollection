@@ -2,6 +2,7 @@
 using ATC.modules.AWC;
 using ATC.modules.DIPS;
 using ATC.modules.TVC;
+using MSHC.Helper;
 using System;
 using System.IO;
 using System.Threading;
@@ -23,10 +24,17 @@ namespace ATC
 			config = new ConfigWrapper(workingDirectory);
 		}
 
-		public void start()
+		public void Start()
 		{
 			try
 			{
+				CommandLineArguments args = new CommandLineArguments(Environment.GetCommandLineArgs(), false);
+
+				bool doAWC = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "awc";
+				bool doDPS = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "dips";
+				bool doTVC = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "tvc";
+				bool doCSE = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "cse";
+
 				config.load(logger);
 
 				AutoWallChange awc = new AutoWallChange(logger, config.settings.awc, workingDirectory);
@@ -34,19 +42,24 @@ namespace ATC
 				TextVersionControl tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
 				CronScriptExecutor cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
 
-				awc.Start();
+				if (doAWC) awc.Start();
 				Thread.Sleep(500);
 
-				dips.Start();
+				if (doDPS) dips.Start();
 				Thread.Sleep(500);
 
-				tvc.Start();
+				if (doTVC) tvc.Start();
 				Thread.Sleep(500);
 
-				cse.Start();
+				if (doCSE) cse.Start();
 				Thread.Sleep(500);
 
 				config.save();
+
+#if DEBUG
+				Console.ReadLine();
+#endif
+
 			}
 			catch (Exception e)
 			{

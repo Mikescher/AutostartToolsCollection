@@ -6,11 +6,12 @@ namespace ATC.config
 		public bool AWC_enabled = false;
 
 		public string pathWallpaperHD = "";
-		public string pathWallpaperLD_background = "";
-		public string pathWallpaperLD_normal = "";
+		public string pathWallpaperLD = "";
 		public string pathWallpaperTUX = "";
-		public string pathWallpaper = "";
 
-        public int HD1080_SXGA_Offset = 0;
-    }
+		public string pathWallpaperFile = "";
+
+		public bool EnableSXGATux = false;
+		public bool PseudoRandom = false;
+	}
 }
