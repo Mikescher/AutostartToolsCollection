@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using ATC.Json;
+using Newtonsoft.Json;
 
 namespace ATC.config
 {
@@ -19,8 +21,7 @@ namespace ATC.config
 		public string path = string.Empty;
 		public string name = null;
 
-		public List<string> jpath = null;
-		public bool formatOutput = false; 
+		public List<TVCPostProcessorEntry> postprocessors = new List<TVCPostProcessorEntry>();
 
 		public string GetFoldername()
 		{
@@ -31,5 +32,13 @@ namespace ATC.config
 		{
 			return Path.Combine(settings.output, GetFoldername());
 		}
+	}
+
+	public class TVCPostProcessorEntry
+	{
+		public string name = null;
+
+		[JsonConverter(typeof(JsonGenericDictionaryOrArrayConverter))]
+		public IDictionary<string, string> settings = null;
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.IO;
+using ATC.Json;
 
 namespace ATC.config
 {
@@ -26,7 +27,9 @@ namespace ATC.config
 				string json = File.ReadAllText(path);
 				try
 				{
-					settings = (ATCSettings)JsonConvert.DeserializeObject(json, typeof(ATCSettings));
+					var jss = new JsonSerializerSettings { Converters = new JsonConverter[] { new JsonGenericDictionaryOrArrayConverter() } };
+
+					settings = JsonConvert.DeserializeObject<ATCSettings>(json, jss);
 				}
 				catch (Exception e)
 				{
@@ -46,11 +49,15 @@ namespace ATC.config
 		{
 			Directory.CreateDirectory(workingDirectory);
 
-			string path = Path.Combine(workingDirectory, logfilename);
-			string json = JsonConvert.SerializeObject(settings, Formatting.Indented, new JsonSerializerSettings()
+			var jss = new JsonSerializerSettings
 			{
+				//Converters = new JsonConverter[] { new JsonGenericDictionaryOrArrayConverter() },
+				ContractResolver = new SkipEmptyContractResolver(),
 				NullValueHandling = NullValueHandling.Ignore
-			});
+			};
+
+			string path = Path.Combine(workingDirectory, logfilename);
+			string json = JsonConvert.SerializeObject(settings, Formatting.Indented, jss);
 
 			File.WriteAllText(path, json);
 		}

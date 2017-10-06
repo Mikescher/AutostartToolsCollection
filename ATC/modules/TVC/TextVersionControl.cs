@@ -6,13 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using ATC.modules.TVC.Formatter;
 using Newtonsoft.Json.Linq;
 
 namespace ATC.modules.TVC
 {
 	public class TextVersionControl : ATCModule
 	{
-		private TVCSettings settings { get { return (TVCSettings)SettingsBase; } }
+		private TVCSettings Settings => (TVCSettings)SettingsBase;
 
 		public TextVersionControl(ATCLogger l, TVCSettings s, string wd)
 			: base(l, s, wd, "TVC")
@@ -24,28 +25,28 @@ namespace ATC.modules.TVC
 		{
 			LogHeader("TextVersionControl");
 
-			if (!settings.TVC_enabled)
+			if (!Settings.TVC_enabled)
 			{
 				Log("TVC not enabled.");
 				return;
 			}
 
-			if (string.IsNullOrWhiteSpace(settings.output))
+			if (string.IsNullOrWhiteSpace(Settings.output))
 			{
 				Log("Outputpath not set.");
 				return;
 			}
 
-			if (settings.paths.Count == 0)
+			if (Settings.paths.Count == 0)
 			{
 				Log("No files in control");
 				return;
 			}
 
-			foreach (var file in settings.paths)
+			foreach (var file in Settings.paths)
 			{
-				if (settings.cleanHistory)
-					cleanUpHistory(file);
+				if (Settings.cleanHistory)
+					CleanUpHistory(file);
 
 				vcontrolfile(file);
 
@@ -75,34 +76,25 @@ namespace ATC.modules.TVC
 			}
 
 			string current = File.ReadAllText(file.path);
+			string original = current;
 
-			if (file.jpath != null)
+			foreach (var fmt in file.postprocessors)
 			{
 				try
 				{
-					current = extractJPath(current, file.jpath);
+					var processor = TVCPostProcessor.Processors.Single(p => string.Equals(p.Name, fmt.name, StringComparison.InvariantCultureIgnoreCase));
+					//Log(string.Format(@"Apply postprocessor {1} to '{0}'", file.GetFoldername(), processor.Name));
+
+					current = processor.Process(current, fmt.settings);
 				}
 				catch (Exception ex)
-				{
-					Log(string.Format(@"ERROR extracting content via jpath:\r\n\r\n{0}", ex.Message));
-					return;
-				}
-			}
-
-			if (file.formatOutput)
-			{
-				try
-				{
-					current = formatText(current, Path.GetExtension(file.path).TrimStart('.'));
-				}
-                catch (Exception ex)
 				{
 					Log(string.Format(@"ERROR formatting content:\r\n\r\n{0}", ex.Message));
 					return;
 				}
 			}
-
-			string outputpath = file.GetOutputPath(settings);
+			
+			string outputpath = file.GetOutputPath(Settings);
 			Directory.CreateDirectory(outputpath);
 
 			string filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.txt", StartTime);
@@ -120,8 +112,6 @@ namespace ATC.modules.TVC
 				OrderByDescending(p => DateTime.ParseExact(Path.GetFileNameWithoutExtension(p), "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture)).
 				ToList();
 
-
-
 			string last = "";
 
 			if (versions.Count > 0)
@@ -138,7 +128,7 @@ namespace ATC.modules.TVC
 
 				try
 				{
-					if (file.jpath != null || file.formatOutput)
+					if (original != current)
 					{
 						File.WriteAllText(filepath, current, Encoding.UTF8);
 						Log(string.Format(@"File '{0}' succesfully written to '{1}' (UTF-8)", file.GetFoldername(), filepath));
@@ -159,34 +149,10 @@ namespace ATC.modules.TVC
 				Log(String.Format("File {0} remains unchanged (MD5: {1})", file.GetFoldername(), currHash));
 			}
 		}
-
-		private string formatText(string current, string type)
+		
+		private void CleanUpHistory(TVCEntry file)
 		{
-			if (type.ToLower() == "json")
-			{
-				return JObject.Parse(current).ToString(Newtonsoft.Json.Formatting.Indented);
-			}
-			else
-			{
-				throw new Exception("Can't format filetype " + type);
-			}
-        }
-
-		private string extractJPath(string current, List<string> jpath)
-		{
-			JToken jccurrent = JObject.Parse(current);
-
-			foreach (var node in jpath)
-			{
-				jccurrent = ((JObject)jccurrent).GetValue(node);
-			}
-
-			return jccurrent.ToString();
-		}
-
-		private void cleanUpHistory(TVCEntry file)
-		{
-			string outputpath = file.GetOutputPath(settings);
+			string outputpath = file.GetOutputPath(Settings);
 			Directory.CreateDirectory(outputpath);
 
 			List<string> versions = Directory.EnumerateFiles(outputpath).

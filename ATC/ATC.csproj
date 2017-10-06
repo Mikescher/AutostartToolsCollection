@@ -58,6 +58,7 @@
     <Compile Include="config\DIPSSettings.cs" />
     <Compile Include="config\SettingsModule.cs" />
     <Compile Include="config\TVCSettings.cs" />
+    <Compile Include="Json\SkipEmptyContractResolver.cs" />
     <Compile Include="modules\ATCModule.cs" />
     <Compile Include="modules\AWC\AutoWallChange.cs" />
     <Compile Include="modules\AWC\RandomImageAccessor.cs" />
@@ -66,10 +67,16 @@
     <Compile Include="modules\DIPS\DesktopIconPositionSaver.cs" />
     <Compile Include="modules\DIPS\ScreenHelper.cs" />
     <Compile Include="modules\DIPS\StringHashing.cs" />
+    <Compile Include="modules\TVC\Formatter\JsonPropFilter.cs" />
+    <Compile Include="modules\TVC\Formatter\Unescaper.cs" />
+    <Compile Include="modules\TVC\Formatter\JsonSelector.cs" />
+    <Compile Include="modules\TVC\Formatter\JsonFormatter.cs" />
+    <Compile Include="modules\TVC\Formatter\TVCPostProcessor.cs" />
     <Compile Include="modules\TVC\StringHashing.cs" />
     <Compile Include="modules\TVC\TextVersionControl.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Json\JsonGenericDictionaryOrArrayConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
