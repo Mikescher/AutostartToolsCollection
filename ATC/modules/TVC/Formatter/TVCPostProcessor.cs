@@ -14,6 +14,7 @@ namespace ATC.modules.TVC.Formatter
 			new JsonSelector(),
 			new Unescaper(),
 			new JsonPropFilter(),
+			new NetscapeConverter(),
 		};
 	}
 }
