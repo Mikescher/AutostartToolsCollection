@@ -10,8 +10,6 @@ namespace ATC.config
 		public bool CSE_enabled = false;
 
 		public List<CSEEntry> scripts = new List<CSEEntry>();
-		
-		public bool parallel = false;
 	}
 
 	public class CSEEntry
@@ -20,6 +18,10 @@ namespace ATC.config
 		public string parameter = "";
 		public int timeout = 2500;
 		public bool hideConsole = false;
+
+		public bool failOnStdErr   = true;
+		public bool failOnTimeout  = true;
+		public bool failOnExitCode = true;
 
 		public object Name
 		{

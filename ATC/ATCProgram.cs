@@ -64,6 +64,7 @@ namespace ATC
 			catch (Exception e)
 			{
 				logger.log("ATC", "Uncaught Exception: " + e);
+				ATCModule.ShowExtMessage("Uncaught Exception in ATC", e.ToString());
 			}
 			finally
 			{

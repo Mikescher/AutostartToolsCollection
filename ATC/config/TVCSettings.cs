@@ -20,6 +20,7 @@ namespace ATC.config
 	{
 		public string path = string.Empty;
 		public string name = null;
+		public bool warnOnDiff = false;
 
 		public List<TVCPostProcessorEntry> postprocessors = new List<TVCPostProcessorEntry>();
 

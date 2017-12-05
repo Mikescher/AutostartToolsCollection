@@ -1,5 +1,7 @@
 ﻿using ATC.config;
+using MSHC.Helper;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace ATC
@@ -44,6 +46,28 @@ namespace ATC
 			Log(string.Format("#{0}#", new string(' ', 77)));
 			Log(new string('#', 79));
 			Log();
+		}
+
+		public static void ShowExtMessage(string title, string msg)
+		{
+			var path = Path.GetTempFileName();
+			File.WriteAllText(path, msg);
+
+			var p = new Process
+			{
+				StartInfo = new ProcessStartInfo
+				{
+					FileName = "SimpleMessagePresenter.exe",
+					Arguments = $"\"{title.Replace('"', '\'')}\" \"{path}\"",
+				}
+			};
+
+			p.Start();
+		}
+
+		protected void ShowExternalMessage(string title, string msg)
+		{
+			ShowExtMessage(title, msg);
 		}
 
 		public abstract void Start();

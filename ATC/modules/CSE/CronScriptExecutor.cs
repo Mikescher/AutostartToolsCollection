@@ -2,7 +2,6 @@
 using MSHC.Helper;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -30,22 +29,8 @@ namespace ATC.modules.TVC
 				return;
 			}
 
-			if (settings.parallel)
-			{
-				ExecuteParallel(settings.scripts);
-				Log();
-			}
-			else
-			{
-				foreach (var script in settings.scripts)
-				{
-					Log("Execute " + script.Name);
-
-					ExecuteScript(script);
-					Log();
-				}
-			}
-
+			ExecuteParallel(settings.scripts);
+			Log();
 		}
 
 		private void ExecuteParallel(List<CSEEntry> scripts)
@@ -66,6 +51,7 @@ namespace ATC.modules.TVC
 					if (entry.path.Contains("\\") && !File.Exists(entry.path))
 					{
 						Log(string.Format(@"Script {0} does not exist - skipping execution", entry.path));
+						ShowExternalMessage($"CSE :: Script not found", $"Script\n{entry.path}\ndoes not exist for\n{entry.Name}");
 						return;
 					}
 
@@ -80,6 +66,7 @@ namespace ATC.modules.TVC
 					{
 						Log(string.Format(@"Process creation failed for {0}", entry.Name));
 						Log(e.ToString());
+						ShowExternalMessage(string.Format(@"CSE :: Process creation failed for {0}", entry.Name), e.ToString());
 						return;
 					}
 
@@ -100,6 +87,15 @@ namespace ATC.modules.TVC
 					}
 
 					Log(b.ToString());
+
+					if (output.ExitCode != 0 && entry.failOnExitCode)
+					{
+						ShowExternalMessage($"CSE :: Script returned error", b.ToString());
+					}
+					else if (!string.IsNullOrWhiteSpace(output.StdErr) && entry.failOnStdErr)
+					{
+						ShowExternalMessage($"CSE :: Script returned stderr", b.ToString());
+					}
 				});
 
 				processes.Add(t);
@@ -116,14 +112,21 @@ namespace ATC.modules.TVC
 
 				foreach (var finProc in processes.Where(p => !p.IsAlive).ToList())
 				{
-					Log("Process " + entryDict[finProc].Name + " finished.");
+					var finProcInfo = entryDict[finProc];
+					Log("Process " + finProcInfo.Name + " finished.");
 					processes.Remove(finProc);
 				}
 			}
 
 			foreach (var errProc in processes)
 			{
-				Log(entryDict[errProc].Name + " Process still running - continue ATC...");
+				var errProcInfo = entryDict[errProc];
+				Log(errProcInfo.Name + " Process still running - continue ATC...");
+
+				if (errProcInfo.failOnTimeout)
+				{
+					ShowExternalMessage($"CSE :: Process ({errProcInfo.Name}) timeout", "continue ATC...");
+				}
 			}
 
 			if (!processes.Any())
@@ -131,48 +134,6 @@ namespace ATC.modules.TVC
 				Log("All processes finished");
 			}
 
-		}
-
-		private void ExecuteScript(CSEEntry entry)
-		{
-			if (entry.path.Contains("\\") && !File.Exists(entry.path))
-			{
-				Log(string.Format(@"File {0} does not exist", entry.path));
-				return;
-			}
-
-			var start = new ProcessStartInfo
-			{
-				FileName = entry.path,
-				UseShellExecute = true,
-				Arguments = entry.parameter,
-			};
-			if (entry.hideConsole) start.WindowStyle = ProcessWindowStyle.Hidden;
-
-			using (Process process = Process.Start(start))
-			{
-				if (process == null)
-				{
-					Log(string.Format(@"Process creation failed for {0}", entry.Name));
-					return;
-				}
-
-				int ltime = entry.timeout;
-				while (ltime > 0 && !process.HasExited)
-				{
-					Thread.Sleep(50);
-					ltime -= 50;
-				}
-
-				if (process.HasExited)
-				{
-					Log("Process finished.");
-				}
-				else
-				{
-					Log("Process still running - continue ATC...");
-				}
-			}
 		}
 	}
 }

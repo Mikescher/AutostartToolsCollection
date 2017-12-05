@@ -128,6 +128,18 @@ namespace ATC.modules.TVC
 
 				try
 				{
+					if (file.warnOnDiff && versions.Count > 0)
+					{
+						ShowDiff(file, last, current, versions[0], file.path);
+					}
+				}
+				catch (Exception ex)
+				{
+					Log(string.Format(@"ERROR diffing File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
+				}
+
+				try
+				{
 					if (original != current)
 					{
 						File.WriteAllText(filepath, current, Encoding.UTF8);
@@ -149,7 +161,38 @@ namespace ATC.modules.TVC
 				Log(String.Format("File {0} remains unchanged (MD5: {1})", file.GetFoldername(), currHash));
 			}
 		}
-		
+
+		private void ShowDiff(TVCEntry file, string txtold, string txtnew, string pathOld, string pathNew)
+		{
+			var linesOld = Regex.Split(txtold, @"\r?\n");
+			var linesNew = Regex.Split(txtnew, @"\r?\n");
+
+			var linesMissing = linesOld.Except(linesNew).ToList();
+
+			if (linesMissing.Count == 0) return;
+
+			var linesAdded = linesNew.Except(linesOld).ToList();
+
+
+			var b = new StringBuilder();
+			b.AppendLine("There were differences between the following files:");
+			b.AppendLine(" - " + pathOld);
+			b.AppendLine(" - " + pathNew);
+			b.AppendLine();
+			b.AppendLine();
+			b.AppendLine("######## REMOVED LINES ########");
+			b.AppendLine();
+			foreach (var line in linesMissing) b.AppendLine(line);
+			b.AppendLine();
+			b.AppendLine();
+			b.AppendLine("######### ADDED LINES #########");
+			b.AppendLine();
+			foreach (var line in linesAdded) b.AppendLine(line);
+
+			foreach (var line in linesMissing) Log($"[WarnOnDiff] Line was removed from {file.GetFoldername()}: '{line}'");
+			ShowExternalMessage($"TVC :: DiffCheck ({file.GetFoldername()})", b.ToString());
+		}
+
 		private void CleanUpHistory(TVCEntry file)
 		{
 			string outputpath = file.GetOutputPath(Settings);
