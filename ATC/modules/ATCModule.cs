@@ -53,12 +53,16 @@ namespace ATC
 			var path = Path.GetTempFileName();
 			File.WriteAllText(path, msg);
 
+			var workDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"ATC\");
+			var fn = Path.Combine(workDir, "SimpleMessagePresenter.exe");
+
 			var p = new Process
 			{
 				StartInfo = new ProcessStartInfo
 				{
-					FileName = "SimpleMessagePresenter.exe",
+					FileName = fn,
 					Arguments = $"\"{title.Replace('"', '\'')}\" \"{path}\"",
+					WorkingDirectory = workDir,
 				}
 			};
 
