@@ -130,7 +130,7 @@ namespace ATC.modules.TVC
 				{
 					if (file.warnOnDiff && versions.Count > 0)
 					{
-						ShowDiff(file, last, current, versions[0], file.path);
+						ShowDiff(file, last, current, versions[0], file.path, file.relaxedWarnOnDiff);
 					}
 				}
 				catch (Exception ex)
@@ -162,16 +162,23 @@ namespace ATC.modules.TVC
 			}
 		}
 
-		private void ShowDiff(TVCEntry file, string txtold, string txtnew, string pathOld, string pathNew)
+		private void ShowDiff(TVCEntry file, string txtold, string txtnew, string pathOld, string pathNew, bool relax)
 		{
 			var linesOld = Regex.Split(txtold, @"\r?\n");
 			var linesNew = Regex.Split(txtnew, @"\r?\n");
 
-			var linesMissing = linesOld.Except(linesNew).ToList();
+			bool cmp(string x, string y)
+			{
+				if (relax) x = x.ToLower().Trim().TrimEnd(',');
+				if (relax) y = y.ToLower().Trim().TrimEnd(',');
+				return x == y;
+			}
+
+			var linesMissing = linesOld.Except(linesNew, new LambdaEqualityComparer<string>(cmp)).ToList();
 
 			if (linesMissing.Count == 0) return;
 
-			var linesAdded = linesNew.Except(linesOld).ToList();
+			var linesAdded = linesNew.Except(linesOld, new LambdaEqualityComparer<string>(cmp)).ToList();
 
 
 			var b = new StringBuilder();

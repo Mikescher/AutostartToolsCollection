@@ -74,6 +74,7 @@
     <Compile Include="modules\TVC\Formatter\JsonSelector.cs" />
     <Compile Include="modules\TVC\Formatter\JsonFormatter.cs" />
     <Compile Include="modules\TVC\Formatter\TVCPostProcessor.cs" />
+    <Compile Include="modules\TVC\LambdaEqualityComparer.cs" />
     <Compile Include="modules\TVC\StringHashing.cs" />
     <Compile Include="modules\TVC\TextVersionControl.cs" />
     <Compile Include="Program.cs" />
