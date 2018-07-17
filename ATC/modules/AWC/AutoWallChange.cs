@@ -195,12 +195,20 @@ namespace ATC.modules.AWC
 
 		private Image MakeTuxImage(Image bg, Image tux)
 		{
+			int tuxWidth  = 256;
+			int tuxHeight = (tux.Height/tux.Width)*tuxWidth;
+
 			using (var graphics = Graphics.FromImage(bg))
 			{
-				graphics.DrawImage(tux, bg.Width - tux.Width - TUX_OFFSET, bg.Height - tux.Height - TUX_OFFSET, tux.Width, tux.Height);
+				graphics.DrawImage(tux, bg.Width - tuxWidth - TUX_OFFSET, bg.Height - tuxHeight - TUX_OFFSET, tuxWidth, tuxHeight);
 			}
 
 			return bg;
+		}
+
+		private Bitmap SafeLoad(string img)
+		{
+
 		}
 
 		private Bitmap TileImageY(Bitmap img, Rectangle bounds, Point offset)
