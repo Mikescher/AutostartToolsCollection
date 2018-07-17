@@ -36,7 +36,7 @@ namespace ATC
 		private string getDateFilename(string path, int idx = 0)
 		{
 			string prefix = String.Format(@"{0:yyyy}_{0:MM}_{0:dd}", startTime);
-			string suffix = ((idx == 0) ? "" : string.Format("_{0,00}", idx)) + ".Log";
+			string suffix = ((idx == 0) ? "" : string.Format("_{0,00}", idx)) + ".log";
 
 			string filepath = Path.Combine(path, prefix+suffix);
 
