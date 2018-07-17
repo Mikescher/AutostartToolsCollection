@@ -206,11 +206,6 @@ namespace ATC.modules.AWC
 			return bg;
 		}
 
-		private Bitmap SafeLoad(string img)
-		{
-
-		}
-
 		private Bitmap TileImageY(Bitmap img, Rectangle bounds, Point offset)
 		{
 			Bitmap result = new Bitmap(bounds.Width, bounds.Height);

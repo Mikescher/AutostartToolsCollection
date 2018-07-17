@@ -20,7 +20,7 @@ namespace ATC.modules.AWC
 			exclusionpath = ep;
 		}
 
-		public Image getRandomImage(out int excludedImages, out int imagesFound, out string choosen)
+		public Bitmap getRandomImage(out int excludedImages, out int imagesFound, out string choosen)
 		{
 			List<string> files = EnumerateFiles(searchpath, @"\.bmp|\.jpg|\.jpeg|\.png").ToList();
 
@@ -45,7 +45,7 @@ namespace ATC.modules.AWC
 					File.AppendAllLines(exclusionpath, new List<string> { Path.GetFileName(used) });
 
 				choosen = used;
-				return img;
+				return SafeConvert(img);
 			}
 			else
 			{
@@ -59,7 +59,7 @@ namespace ATC.modules.AWC
 						File.WriteAllText(exclusionpath, Path.GetFileName(used)); // Resets list
 
 					choosen = used;
-					return img;
+					return SafeConvert(img);
 				}
 				else
 				{
@@ -73,6 +73,15 @@ namespace ATC.modules.AWC
 		{
 			Regex reSearchPattern = new Regex(searchPatternExpression);
 			return Directory.EnumerateFiles(path, "*", searchOption).Where(file => reSearchPattern.IsMatch(Path.GetExtension(file)));
+		}
+
+		private Bitmap SafeConvert(Image img)
+		{
+			Bitmap bmp = new Bitmap(img.Width, img.Height);
+
+			using(Graphics g = Graphics.FromImage(bmp)) { g.DrawImage(img, 0, 0); }
+
+			return bmp;
 		}
 	}
 }
