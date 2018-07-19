@@ -79,7 +79,7 @@ namespace ATC.modules.AWC
 		{
 			Bitmap bmp = new Bitmap(img.Width, img.Height);
 
-			using(Graphics g = Graphics.FromImage(bmp)) { g.DrawImage(img, 0, 0); }
+			using(Graphics g = Graphics.FromImage(bmp)) { g.DrawImage(img, 0, 0, img.Width, img.Height); }
 
 			return bmp;
 		}

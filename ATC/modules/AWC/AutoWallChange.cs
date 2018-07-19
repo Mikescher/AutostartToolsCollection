@@ -196,11 +196,13 @@ namespace ATC.modules.AWC
 		private Image MakeTuxImage(Image bg, Image tux)
 		{
 			int tuxWidth  = 256;
-			int tuxHeight = (tux.Height/tux.Width)*tuxWidth;
+			int tuxHeight = (int)(((tux.Height * 1d)/tux.Width)*tuxWidth);
 
 			using (var graphics = Graphics.FromImage(bg))
 			{
-				graphics.DrawImage(tux, bg.Width - tuxWidth - TUX_OFFSET, bg.Height - tuxHeight - TUX_OFFSET, tuxWidth, tuxHeight);
+				var target = new Rectangle(bg.Width - tuxWidth - TUX_OFFSET, bg.Height - tuxHeight - TUX_OFFSET, tuxWidth, tuxHeight);
+				var source = new Rectangle(0, 0, tux.Width, tux.Height);
+				graphics.DrawImage(tux, target, source, GraphicsUnit.Pixel);
 			}
 
 			return bg;
