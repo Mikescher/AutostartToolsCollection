@@ -90,6 +90,7 @@ namespace ATC.modules.TVC
 				catch (Exception ex)
 				{
 					Log(string.Format(@"ERROR formatting content:\r\n\r\n{0}", ex.Message));
+					ShowExtMessage("ERROR formatting content", ex.ToString());
 					return;
 				}
 			}
@@ -136,6 +137,7 @@ namespace ATC.modules.TVC
 				catch (Exception ex)
 				{
 					Log(string.Format(@"ERROR diffing File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
+					ShowExtMessage(string.Format(@"ERROR diffing File '{0}' to '{1}'", file.GetFoldername(), filepath), ex.ToString());
 				}
 
 				try
@@ -154,6 +156,7 @@ namespace ATC.modules.TVC
 				catch (Exception ex)
 				{
 					Log(string.Format(@"ERROR copying File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
+					ShowExtMessage(string.Format(@"ERROR copying File '{0}' to '{1}'", file.GetFoldername(), filepath), ex.ToString());
 				}
 			}
 			else

@@ -45,6 +45,8 @@ namespace ATC.modules.TVC.Formatter
 				if (in_comment) continue;
 
 				if (linenum == 1 && line.StartsWith("<!DOCTYPE")) continue;
+				
+				if (line.StartsWith("<HR>")) { continue; } //ignore
 
 				if (line.StartsWith("<META"))
 				{

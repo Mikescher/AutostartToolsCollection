@@ -156,6 +156,8 @@ namespace ATC.modules.DIPS
 				catch (Exception ex)
 				{
 					Log(string.Format(@"ERROR backuping icons to '{0}' : {1}", filepath, ex.Message));
+					
+					ShowExtMessage(string.Format(@"ERROR backuping icons to '{0}'", filepath), ex.ToString());
 				}
 			}
 			else
