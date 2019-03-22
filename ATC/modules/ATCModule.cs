@@ -1,5 +1,4 @@
 ﻿using ATC.config;
-using MSHC.Helper;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -27,7 +26,12 @@ namespace ATC
 
 		protected void Log(string text = "")
 		{
-			logger.log(modulename, text);
+			logger.Log(modulename, text);
+		}
+
+		protected void LogNewFile(string[] path, string text)
+		{
+			logger.LogNewFile(modulename, path, text);
 		}
 
 		protected void LogHeader(string fullname)

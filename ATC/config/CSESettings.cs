@@ -4,7 +4,6 @@ using System.IO;
 
 namespace ATC.config
 {
-
 	public class CSESettings : SettingsModule
 	{
 		public bool CSE_enabled = false;
@@ -22,7 +21,7 @@ namespace ATC.config
 		public bool failOnTimeout  = true;
 		public bool failOnExitCode = true;
 
-		public object Name
+		public string Name
 		{
 			get
 			{

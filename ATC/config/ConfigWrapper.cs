@@ -33,8 +33,8 @@ namespace ATC.config
 				}
 				catch (Exception e)
 				{
-					logger.log("ATC", "Could not load Config-File");
-					logger.log("ATC", "    " + e.Message);
+					logger.Log("ATC", "Could not load Config-File");
+					logger.Log("ATC", "    " + e.Message);
 				}
 			}
 			else

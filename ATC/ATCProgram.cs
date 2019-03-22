@@ -2,10 +2,11 @@
 using ATC.modules.AWC;
 using ATC.modules.DIPS;
 using ATC.modules.TVC;
-using MSHC.Helper;
 using System;
 using System.IO;
 using System.Threading;
+using ATC.modules.CSE;
+using MSHC.Util.Helper;
 
 namespace ATC
 {
@@ -28,19 +29,19 @@ namespace ATC
 		{
 			try
 			{
-				CommandLineArguments args = new CommandLineArguments(Environment.GetCommandLineArgs(), false);
+				var args = new CommandLineArguments(Environment.GetCommandLineArgs(), false);
 
-				bool doAWC = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "awc";
-				bool doDPS = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "dips";
-				bool doTVC = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "tvc";
-				bool doCSE = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "cse";
+				var doAWC = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "awc";
+				var doDPS = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "dips";
+				var doTVC = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "tvc";
+				var doCSE = !args.Contains("runonly") || args.GetStringDefault("runonly", "").ToLower() == "cse";
 
 				config.load(logger);
 
-				AutoWallChange awc = new AutoWallChange(logger, config.settings.awc, workingDirectory);
-				DesktopIconPositionSaver dips = new DesktopIconPositionSaver(logger, config.settings.dips, workingDirectory);
-				TextVersionControl tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
-				CronScriptExecutor cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
+				var awc = new AutoWallChange(logger, config.settings.awc, workingDirectory);
+				var dips = new DesktopIconPositionSaver(logger, config.settings.dips, workingDirectory);
+				var tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
+				var cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
 
 				if (doAWC) awc.Start();
 				Thread.Sleep(500);
@@ -57,18 +58,20 @@ namespace ATC
 				config.save();
 
 #if DEBUG
+				Console.WriteLine();
+				Console.WriteLine("Prease any key to quit...");
 				Console.ReadLine();
 #endif
 
 			}
 			catch (Exception e)
 			{
-				logger.log("ATC", "Uncaught Exception: " + e);
+				logger.Log("ATC", "Uncaught Exception: " + e);
 				ATCModule.ShowExtMessage("Uncaught Exception in ATC", e.ToString());
 			}
 			finally
 			{
-				logger.saveAll();
+				logger.SaveAll();
 			}
 		}
 	}

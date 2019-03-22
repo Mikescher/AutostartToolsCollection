@@ -7,19 +7,21 @@ namespace ATC
 {
 	public class ATCLogger
 	{
-		private object lck = new object();
+		private readonly object lck = new object();
 
-		private List<Tuple<string, string>> loglist = new List<Tuple<string, string>>();
-		private string logDir;
-		private DateTime startTime;
+		private readonly List<Tuple<string, string>> loglist = new List<Tuple<string, string>>();
+		private readonly string rootWorkingDir;
+		private readonly string logDir;
+		private readonly DateTime startTime;
 
 		public ATCLogger(string workingDir)
 		{
+			rootWorkingDir = workingDir;
 			logDir = Path.Combine(workingDir, "logs");
 			startTime = DateTime.Now;
 		}
 
-		public void log(string cat, string text)
+		public void Log(string cat, string text)
 		{
 			lock (lck)
 			{
@@ -28,41 +30,54 @@ namespace ATC
 			};
 		}
 
-		private List<string> getCategories()
+		public void LogNewFile(string modulename, string[] path, string text)
 		{
-			return loglist.Select(p => p.Item1).Distinct().ToList();
+			var fulldir = Path.Combine(new []{ rootWorkingDir, modulename }.Concat(path.Reverse().Skip(1).Reverse()).ToArray());
+			var fullpath = Path.Combine(fulldir, path.Last());
+
+			if (!Directory.Exists(fulldir)) Directory.CreateDirectory(fulldir);
+
+			File.WriteAllText(fullpath, text);
 		}
 
-		private string getDateFilename(string path, int idx = 0)
+		private IEnumerable<string> GetCategories()
 		{
-			string prefix = String.Format(@"{0:yyyy}_{0:MM}_{0:dd}", startTime);
-			string suffix = ((idx == 0) ? "" : string.Format("_{0,00}", idx)) + ".log";
-
-			string filepath = Path.Combine(path, prefix+suffix);
-
-			if (File.Exists(filepath))
-				return getDateFilename(path, idx + 1);
-			else
-				return filepath;
-		}
-
-		private List<String> getLog(string cat)
-		{
-			return loglist.Where(p => p.Item1 == cat).Select(p => p.Item2).ToList();
-		}
-
-		public void saveAll()
-		{
-			List<string> cats = getCategories();
-
-			foreach (string cat in cats)
+			lock (lck)
 			{
-				List<String> log = getLog(cat);
-				string slog = string.Join(Environment.NewLine, log);
+				return loglist.Select(p => p.Item1).Distinct().ToList();
+			}
+		}
 
-				string path = Path.Combine(logDir, cat);
+		private string GetDateFilename(string path, int idx = 0)
+		{
+			var prefix = $@"{startTime:yyyy}_{startTime:MM}_{startTime:dd}";
+			var suffix = (idx == 0) ? ".log" : $"_{idx,0}.log";
+
+			var filepath = Path.Combine(path, prefix+suffix);
+
+			return File.Exists(filepath) ? GetDateFilename(path, idx + 1) : filepath;
+		}
+
+		private IEnumerable<string> GetLog(string cat)
+		{
+			lock (lck)
+			{
+				return loglist.Where(p => p.Item1 == cat).Select(p => p.Item2).ToList();
+			}
+		}
+
+		public void SaveAll()
+		{
+			var cats = GetCategories();
+
+			foreach (var cat in cats)
+			{
+				var log = GetLog(cat);
+				var slog = string.Join(Environment.NewLine, log);
+
+				var path = Path.Combine(logDir, cat);
 				Directory.CreateDirectory(path);
-				path = getDateFilename(path);
+				path = GetDateFilename(path);
 
 				File.WriteAllText(path, slog);
 			}
