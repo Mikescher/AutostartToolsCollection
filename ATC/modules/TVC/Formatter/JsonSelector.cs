@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ATC.modules.TVC.Formatter
 {
-	class JsonSelector : TVCPostProcessor
+	class JsonSelector : TVCTransformators
 	{
 		public override string Name => "json_select";
 

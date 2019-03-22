@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ATC.modules.TVC.Formatter
 {
-	class Unescaper : TVCPostProcessor
+	class Unescaper : TVCTransformators
 	{
 		public override string Name => "unescape";
 

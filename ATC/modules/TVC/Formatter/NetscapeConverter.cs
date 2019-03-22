@@ -9,7 +9,7 @@ using System.Web;
 
 namespace ATC.modules.TVC.Formatter
 {
-	class NetscapeConverter : TVCPostProcessor
+	class NetscapeConverter : TVCTransformators
 	{
 		public override string Name => "netscape_bookmarks_convert";
 

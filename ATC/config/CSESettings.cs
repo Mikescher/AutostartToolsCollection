@@ -17,7 +17,6 @@ namespace ATC.config
 		public string path = "";
 		public string parameter = "";
 		public int timeout = 2500;
-		public bool hideConsole = false;
 
 		public bool failOnStdErr   = true;
 		public bool failOnTimeout  = true;

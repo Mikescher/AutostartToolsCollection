@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ATC.modules.TVC.Formatter;
-using Newtonsoft.Json.Linq;
 
 namespace ATC.modules.TVC
 {
@@ -48,7 +47,7 @@ namespace ATC.modules.TVC
 				if (Settings.cleanHistory)
 					CleanUpHistory(file);
 
-				vcontrolfile(file);
+				ProcessFile(file);
 
 				Log();
 			}
@@ -56,88 +55,69 @@ namespace ATC.modules.TVC
 
 		private bool IsValidDateTimeFileName(string path)
 		{
-			string fn = Path.GetFileName(path);
-			string fnwe = Path.GetFileNameWithoutExtension(path);
-
-			DateTime t;
+			var fn = Path.GetFileName(path);
+			var fnwe = Path.GetFileNameWithoutExtension(path);
 
 			if (Regex.IsMatch(fn, @"[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}.txt"))
-				return DateTime.TryParseExact(fnwe, "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out t);
-			else
-				return false;
+				return DateTime.TryParseExact(fnwe, "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+			
+			return false;
 		}
 
-		private void vcontrolfile(TVCEntry file)
+		private void ProcessFile(TVCEntry file)
 		{
 			if (!File.Exists(file.path))
 			{
-				Log(String.Format(@"File {0} does not exist", file.path));
+				Log($@"File {file.path} does not exist");
 				return;
 			}
 
-			string current = File.ReadAllText(file.path);
-			string original = current;
+			var original = File.ReadAllText(file.path);
+			var current = Transform(original, file.postprocessors);
+			if (current==null) return;
 
-			foreach (var fmt in file.postprocessors)
-			{
-				try
-				{
-					var processor = TVCPostProcessor.Processors.Single(p => string.Equals(p.Name, fmt.name, StringComparison.InvariantCultureIgnoreCase));
-					//Log(string.Format(@"Apply postprocessor {1} to '{0}'", file.GetFoldername(), processor.Name));
-
-					current = processor.Process(current, fmt.settings);
-				}
-				catch (Exception ex)
-				{
-					Log(string.Format(@"ERROR formatting content:\r\n\r\n{0}", ex.Message));
-					ShowExtMessage("ERROR formatting content", ex.ToString());
-					return;
-				}
-			}
-			
-			string outputpath = file.GetOutputPath(Settings);
+			var outputpath = file.GetOutputPath(Settings);
 			Directory.CreateDirectory(outputpath);
 
-			string filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.txt", StartTime);
+			var filename = string.Format("{0:yyyy}_{0:MM}_{0:dd}_{0:HH}_{0:mm}.txt", StartTime);
 
-			string filepath = Path.Combine(outputpath, filename);
+			var filepath = Path.Combine(outputpath, filename);
 
 			if (File.Exists(filepath))
 			{
-				Log(String.Format(@"File {0} does already exist in ouput directory", filepath));
+				Log($@"File {filepath} does already exist in ouput directory");
 				return;
 			}
 
-			List<string> versions = Directory.EnumerateFiles(outputpath).
+			var versions = Directory.EnumerateFiles(outputpath).
 				Where(IsValidDateTimeFileName).
 				OrderByDescending(p => DateTime.ParseExact(Path.GetFileNameWithoutExtension(p), "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture)).
 				ToList();
 
-			string last = "";
+			var last = "";
 
-			if (versions.Count > 0)
-				last = File.ReadAllText(versions[0]);
+			if (versions.Count > 0) last = File.ReadAllText(versions[0]);
 
-			string lastHash = StringHashing.CalculateMD5Hash(last);
-			string currHash = StringHashing.CalculateMD5Hash(current);
+			var lastHash = StringHashing.CalculateMD5Hash(last);
+			var currHash = StringHashing.CalculateMD5Hash(current);
 
 			if (lastHash != currHash)
 			{
-				Log(String.Format("File {0} differs from last Version - copying current version", file.GetFoldername()));
-				Log(String.Format("MD5 Current File:  {0}", currHash));
-				Log(String.Format("MD5 Previous File: {0}", lastHash));
+				Log($"File {file.GetFoldername()} differs from last Version - copying current version");
+				Log($"MD5 Current File:  {currHash}");
+				Log($"MD5 Previous File: {lastHash}");
 
 				try
 				{
 					if (file.warnOnDiff && versions.Count > 0)
 					{
-						ShowDiff(file, last, current, versions[0], file.path, file.relaxedWarnOnDiff);
+						ShowDiff(file, last, current, versions[0], file.path, file.prediffprocessors);
 					}
 				}
 				catch (Exception ex)
 				{
-					Log(string.Format(@"ERROR diffing File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
-					ShowExtMessage(string.Format(@"ERROR diffing File '{0}' to '{1}'", file.GetFoldername(), filepath), ex.ToString());
+					Log($@"ERROR diffing File '{file.GetFoldername()}' to '{filepath}' : {ex.Message}");
+					ShowExtMessage($@"ERROR diffing File '{file.GetFoldername()}' to '{filepath}'", ex.ToString());
 				}
 
 				try
@@ -145,43 +125,63 @@ namespace ATC.modules.TVC
 					if (original != current)
 					{
 						File.WriteAllText(filepath, current, Encoding.UTF8);
-						Log(string.Format(@"File '{0}' succesfully written to '{1}' (UTF-8)", file.GetFoldername(), filepath));
+						Log($@"File '{file.GetFoldername()}' succesfully written to '{filepath}' (UTF-8)");
 					}
 					else
 					{
 						File.Copy(file.path, filepath, false);
-						Log(string.Format(@"File '{0}' succesfully copied to '{1}'", file.GetFoldername(), filepath));
+						Log($@"File '{file.GetFoldername()}' succesfully copied to '{filepath}'");
 					}
 				}
 				catch (Exception ex)
 				{
-					Log(string.Format(@"ERROR copying File '{0}' to '{1}' : {2}", file.GetFoldername(), filepath, ex.Message));
-					ShowExtMessage(string.Format(@"ERROR copying File '{0}' to '{1}'", file.GetFoldername(), filepath), ex.ToString());
+					Log($@"ERROR copying File '{file.GetFoldername()}' to '{filepath}' : {ex.Message}");
+					ShowExtMessage($@"ERROR copying File '{file.GetFoldername()}' to '{filepath}'", ex.ToString());
 				}
 			}
 			else
 			{
-				Log(String.Format("File {0} remains unchanged (MD5: {1})", file.GetFoldername(), currHash));
+				Log($"File {file.GetFoldername()} remains unchanged (MD5: {currHash})");
 			}
 		}
 
-		private void ShowDiff(TVCEntry file, string txtold, string txtnew, string pathOld, string pathNew, bool relax)
+		private string Transform(string input, IEnumerable<TVCTransformatorEntry> processors)
+		{
+			var data = input;
+			foreach (var method in processors)
+			{
+				try
+				{
+					var processor = TVCTransformators.Processors[method.name];
+					//Log(string.Format(@"Apply postprocessor {1} to '{0}'", file.GetFoldername(), processor.Name));
+
+					data = processor.Process(data, method.settings);
+				}
+				catch (Exception ex)
+				{
+					Log($@"ERROR formatting content:\r\n\r\n{ex.Message}");
+					ShowExtMessage("ERROR formatting content", ex.ToString());
+					return null;
+				}
+			}
+			return data;
+		}
+
+		private void ShowDiff(TVCEntry file, string txtold, string txtnew, string pathOld, string pathNew, List<TVCTransformatorEntry> transform)
 		{
 			var linesOld = Regex.Split(txtold, @"\r?\n");
 			var linesNew = Regex.Split(txtnew, @"\r?\n");
 
-			bool cmp(string x, string y)
+			bool LineCompare(string x, string y)
 			{
-				if (relax) x = x.ToLower().Trim().TrimEnd(',');
-				if (relax) y = y.ToLower().Trim().TrimEnd(',');
-				return x == y;
+				return Transform(x, transform) == Transform(y, transform);
 			}
 
-			var linesMissing = linesOld.Except(linesNew, new LambdaEqualityComparer<string>(cmp)).ToList();
+			var linesMissing = linesOld.Except(linesNew, new LambdaEqualityComparer<string>(LineCompare)).ToList();
 
 			if (linesMissing.Count == 0) return;
 
-			var linesAdded = linesNew.Except(linesOld, new LambdaEqualityComparer<string>(cmp)).ToList();
+			var linesAdded = linesNew.Except(linesOld, new LambdaEqualityComparer<string>(LineCompare)).ToList();
 
 
 			var b = new StringBuilder();
@@ -205,19 +205,19 @@ namespace ATC.modules.TVC
 
 		private void CleanUpHistory(TVCEntry file)
 		{
-			string outputpath = file.GetOutputPath(Settings);
+			var outputpath = file.GetOutputPath(Settings);
 			Directory.CreateDirectory(outputpath);
 
-			List<string> versions = Directory.EnumerateFiles(outputpath).
+			var versions = Directory.EnumerateFiles(outputpath).
 				Where(IsValidDateTimeFileName).
 				OrderByDescending(p => DateTime.ParseExact(Path.GetFileNameWithoutExtension(p), "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture)).
 				ToList();
 
-			List<string> contents = versions.Select(File.ReadAllText).ToList();
+			var contents = versions.Select(File.ReadAllText).ToList();
 
-			List<int> deletions = new List<int>();
+			var deletions = new List<int>();
 
-			for (int i = 1; i < versions.Count; i++)
+			for (var i = 1; i < versions.Count; i++)
 			{
 				if (contents[i] == contents[i - 1])
 				{
@@ -225,11 +225,9 @@ namespace ATC.modules.TVC
 				}
 			}
 
-			for (int i = deletions.Count - 1; i >= 0; i--)
+			for (var i = deletions.Count - 1; i >= 0; i--)
 			{
-				Log(string.Format("Cleaned up duplicate Entry in History for {0}: {1}",
-					Path.GetFileNameWithoutExtension(file.GetFoldername()),
-					Path.GetFileNameWithoutExtension(versions[deletions[i]])));
+				Log($"Cleaned up duplicate Entry in History for {Path.GetFileNameWithoutExtension(file.GetFoldername())}: {Path.GetFileNameWithoutExtension(versions[deletions[i]])}");
 
 				File.Delete(versions[deletions[i]]);
 			}

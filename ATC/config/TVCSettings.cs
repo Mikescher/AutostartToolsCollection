@@ -21,9 +21,9 @@ namespace ATC.config
 		public string path = string.Empty;
 		public string name = null;
 		public bool warnOnDiff = false;
-		public bool relaxedWarnOnDiff = false;
 
-		public List<TVCPostProcessorEntry> postprocessors = new List<TVCPostProcessorEntry>();
+		public List<TVCTransformatorEntry> postprocessors = new List<TVCTransformatorEntry>();         // Transform input before writing to output (and before comparison)
+		public List<TVCTransformatorEntry> prediffprocessors = new List<TVCTransformatorEntry>();      // Transform input lines before comparing them (but write original to output)
 
 		public string GetFoldername()
 		{
@@ -36,7 +36,7 @@ namespace ATC.config
 		}
 	}
 
-	public class TVCPostProcessorEntry
+	public class TVCTransformatorEntry
 	{
 		public string name = null;
 

@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ATC.modules.TVC.Formatter
 {
-	class JsonPropFilter : TVCPostProcessor
+	class JsonPropFilter : TVCTransformators
 	{
 		public override string Name => "json_propfilter";
 
