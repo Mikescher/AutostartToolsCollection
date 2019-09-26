@@ -47,7 +47,10 @@ namespace ATC.modules.TVC
 				if (Settings.cleanHistory)
 					CleanUpHistory(file);
 
-				ProcessFile(file);
+				if (file.isRecursiveFolder)
+					ProcessDirectory(file);
+				else
+					ProcessFile(file);
 
 				Log();
 			}
@@ -60,15 +63,33 @@ namespace ATC.modules.TVC
 
 			if (Regex.IsMatch(fn, @"[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{2}_[0-9]{2}.txt"))
 				return DateTime.TryParseExact(fnwe, "yyyy_MM_dd_HH_mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
-			
+
 			return false;
+		}
+
+		private void ProcessDirectory(TVCEntry file)
+		{
+			if (!Directory.Exists(file.path))
+			{
+				Log($"Directory {file.path} does not exist");
+				return;
+			}
+
+			var dirfiles = Directory.EnumerateFiles(file.path);
+
+			foreach (var subfile in dirfiles)
+			{
+				var subentry = file.CreateSubEntry(subfile);
+				ProcessFile(subentry);
+				Log();
+			}
 		}
 
 		private void ProcessFile(TVCEntry file)
 		{
 			if (!File.Exists(file.path))
 			{
-				Log($@"File {file.path} does not exist");
+				Log($"File {file.path} does not exist");
 				return;
 			}
 
