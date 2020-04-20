@@ -29,6 +29,11 @@ namespace ATC.modules.CSE
 				return;
 			}
 
+			if (settings.scripts.Select(p => p.name).Distinct().Count() != settings.scripts.Count)
+			{
+				throw new Exception("Script names in CSE must be unique");
+			}
+
 			ExecuteParallel(settings.scripts);
 			Log();
 		}
@@ -63,7 +68,7 @@ namespace ATC.modules.CSE
 				foreach (var finProc in processes.Where(p => !p.IsAlive).ToList())
 				{
 					var finProcInfo = entryDict[finProc];
-					Log("Process " + finProcInfo.Name + " finished.");
+					Log("Process " + finProcInfo.name + " finished.");
 					processes.Remove(finProc);
 				}
 			}
@@ -71,11 +76,11 @@ namespace ATC.modules.CSE
 			foreach (var errProc in processes)
 			{
 				var errProcInfo = entryDict[errProc];
-				Log(errProcInfo.Name + " Process still running - continue ATC...");
+				Log(errProcInfo.name + " Process still running - continue ATC...");
 
 				if (errProcInfo.failOnTimeout)
 				{
-					ShowExternalMessage($"CSE :: Process ({errProcInfo.Name}) timeout", "continue ATC...");
+					ShowExternalMessage($"CSE :: Process ({errProcInfo.name}) timeout", "continue ATC...");
 				}
 			}
 
@@ -91,11 +96,11 @@ namespace ATC.modules.CSE
 			if (entry.path.Contains("\\") && !File.Exists(entry.path))
 			{
 				Log($@"Script {entry.path} does not exist - skipping execution");
-				ShowExternalMessage($"CSE :: Script not found", $"Script\n{entry.path}\ndoes not exist for\n{entry.Name}");
+				ShowExternalMessage($"CSE :: Script not found", $"Script\n{entry.path}\ndoes not exist for\n{entry.name}");
 				return;
 			}
 
-			Log($@"Start script [{id}] {entry.Name}");
+			Log($@"Start script [{id}] {entry.name}");
 
 			ProcessOutput output;
 			try
@@ -104,21 +109,21 @@ namespace ATC.modules.CSE
 			}
 			catch (Exception e)
 			{
-				Log($@"Process creation failed for {entry.Name}");
+				Log($@"Process creation failed for {entry.name}");
 				Log(e.ToString());
-				ShowExternalMessage($@"CSE :: Process creation failed for {entry.Name}", e.ToString());
+				ShowExternalMessage($@"CSE :: Process creation failed for {entry.name}", e.ToString());
 				return;
 			}
 
 			var dlog = $"> {output.Command}\n\n\n\n{output.StdCombined}\n\n\n\nExitcode: {output.ExitCode}";
 
-			LogNewFile(new[]{"Output", FilenameHelper.StripStringForFilename(entry.Name), $"Run_{DateTime.Now:yyyy-MM-dd_HH-mm-ss_ffff}.txt"}, dlog);
+			LogNewFile(new[]{"Output", FilenameHelper.StripStringForFilename(entry.name), $"Run_{DateTime.Now:yyyy-MM-dd_HH-mm-ss_ffff}.txt"}, dlog);
 
 			var op1 = "========================  [" + id + "]-STDOUT  ========================";
 			var op2 = "========================  [" + id + "]-STDERR  ========================";
 
 			var b = new StringBuilder();
-			b.AppendLine(string.Format(@"Finished script [{2}] {0} with {1}", entry.Name, output.ExitCode, id));
+			b.AppendLine(string.Format(@"Finished script [{2}] {0} with {1}", entry.name, output.ExitCode, id));
 			b.AppendLine();
 			b.AppendLine($"{op1}\n{output.StdOut}\n{new string('=', op1.Length)}");
 			b.AppendLine();
