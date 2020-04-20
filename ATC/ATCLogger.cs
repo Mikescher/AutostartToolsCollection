@@ -10,6 +10,7 @@ namespace ATC
 		private readonly object lck = new object();
 
 		private readonly List<Tuple<string, string>> loglist = new List<Tuple<string, string>>();
+		private readonly List<string> fulllog = new List<string>();
 		private readonly string rootWorkingDir;
 		private readonly string logDir;
 		private readonly DateTime startTime;
@@ -26,6 +27,7 @@ namespace ATC
 			lock (lck)
 			{
 				loglist.Add(Tuple.Create(cat, text));
+				fulllog.Add(text);
 				Console.WriteLine(text);
 			};
 		}
@@ -66,6 +68,14 @@ namespace ATC
 			}
 		}
 
+		private IEnumerable<string> GetFullLog()
+		{
+			lock (lck)
+			{
+				return fulllog.ToList();
+			}
+		}
+
 		public void SaveAll()
 		{
 			var cats = GetCategories();
@@ -73,6 +83,7 @@ namespace ATC
 			foreach (var cat in cats)
 			{
 				var log = GetLog(cat);
+
 				var slog = string.Join(Environment.NewLine, log);
 
 				var path = Path.Combine(logDir, cat);
@@ -81,6 +92,15 @@ namespace ATC
 
 				File.WriteAllText(path, slog);
 			}
+
+			var flog = GetFullLog();
+			var sflog = string.Join(Environment.NewLine, flog);
+
+			var fpath = Path.Combine(logDir, "_raw");
+			Directory.CreateDirectory(fpath);
+			fpath = GetDateFilename(fpath);
+
+			File.WriteAllText(fpath, sflog);
 		}
 	}
 }
