@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
-namespace ATC.modules.TVC.Formatter
+namespace ATC.Lib.modules.TVC.Formatter
 {
 	class Unescaper : TVCTransformators
 	{

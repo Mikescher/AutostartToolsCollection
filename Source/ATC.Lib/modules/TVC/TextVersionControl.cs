@@ -1,4 +1,4 @@
-﻿using ATC.config;
+﻿using ATC.Lib.config;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,9 +6,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using ATC.modules.TVC.Formatter;
+using ATC.Lib.modules.TVC.Formatter;
+using System.Threading;
 
-namespace ATC.modules.TVC
+namespace ATC.Lib.modules.TVC
 {
 	public class TextVersionControl : ATCModule
 	{
@@ -70,6 +71,8 @@ namespace ATC.modules.TVC
 
 					LogProxy(file.proxy, "");
 					file.proxy.FinishSuccess();
+
+					Thread.Sleep(250);
 				}
                 catch (Exception e)
                 {

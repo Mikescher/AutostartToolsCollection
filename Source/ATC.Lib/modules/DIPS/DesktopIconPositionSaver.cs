@@ -1,4 +1,4 @@
-﻿using ATC.config;
+﻿using ATC.Lib.config;
 using DesktopAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-namespace ATC.modules.DIPS
+namespace ATC.Lib.modules.DIPS
 {
 	public class DesktopIconPositionSaver : ATCModule
 	{

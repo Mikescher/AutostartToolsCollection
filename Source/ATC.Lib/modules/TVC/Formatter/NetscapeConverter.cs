@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace ATC.modules.TVC.Formatter
+namespace ATC.Lib.modules.TVC.Formatter
 {
 	class NetscapeConverter : TVCTransformators
 	{

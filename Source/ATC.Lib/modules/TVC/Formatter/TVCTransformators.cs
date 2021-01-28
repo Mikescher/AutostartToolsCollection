@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ATC.modules.TVC.Formatter
+namespace ATC.Lib.modules.TVC.Formatter
 {
 	public abstract class TVCTransformators
 	{

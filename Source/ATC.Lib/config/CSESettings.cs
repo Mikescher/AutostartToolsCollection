@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace ATC.config
+namespace ATC.Lib.config
 {
 	public class CSESettings : SettingsModule
 	{

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace ATC
+namespace ATC.Lib
 {
 	public class ATCLogger
 	{
@@ -32,19 +32,19 @@ namespace ATC
 			Inst?.listener.Add(cat, proxy);
 		}
 
-		public void Log(string rootcat, string subcat, string text)
+		public void Log(string rootcat, string subcat, string text, bool subcatonly = false)
 		{
 			var fullcat = rootcat;
 			if (subcat != null) fullcat += "::" + subcat;
 
 			lock (lck)
 			{
-				loglist.Add(Tuple.Create(rootcat, text));
-				fulllog.Add(text);
+				if (!subcatonly) loglist.Add(Tuple.Create(rootcat, text));
+				if (!subcatonly) fulllog.Add(text);
 				Console.WriteLine(text);
 
-				if (listener.TryGetValue(string.Empty, out var l0)) l0.AddLog(text);
-				if (listener.TryGetValue(rootcat, out var l1)) l1.AddLog(text);
+				if (!subcatonly && listener.TryGetValue(string.Empty, out var l0)) l0.AddLog(text);
+				if (!subcatonly && listener.TryGetValue(rootcat, out var l1)) l1.AddLog(text);
 				if (subcat != null && listener.TryGetValue(fullcat, out var l2)) l2.AddLog(text);
 			};
 		}

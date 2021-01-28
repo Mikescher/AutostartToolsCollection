@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ATC.Json;
+using ATC.Lib.Json;
 using Newtonsoft.Json;
 
-namespace ATC.config
+namespace ATC.Lib.config
 {
 	public class TVCSettings : SettingsModule
 	{

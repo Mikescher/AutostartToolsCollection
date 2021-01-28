@@ -10,9 +10,9 @@
     <RootNamespace>ATC.UI</RootNamespace>
     <AssemblyTitle>ATC.UI</AssemblyTitle>
     
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
-    <AssemblyInformationalVersion>1.0.0.0-master</AssemblyInformationalVersion>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <AssemblyFileVersion>3.0.0.0</AssemblyFileVersion>
+    <AssemblyInformationalVersion>3.0.0.0</AssemblyInformationalVersion>
 
     <OutDir>..\..\Bin\UI\$(Configuration)\</OutDir>
   </PropertyGroup>

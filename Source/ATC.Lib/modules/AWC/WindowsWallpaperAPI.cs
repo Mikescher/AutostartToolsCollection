@@ -1,7 +1,7 @@
 ﻿using Microsoft.Win32;
 using System.Runtime.InteropServices;
 
-namespace ATC.modules.AWC
+namespace ATC.Lib.modules.AWC
 {
 	public class WindowsWallpaperAPI
 	{

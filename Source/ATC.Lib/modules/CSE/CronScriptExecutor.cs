@@ -1,4 +1,4 @@
-﻿using ATC.config;
+﻿using ATC.Lib.config;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,7 +8,7 @@ using System.Threading;
 using MSHC.Util.Helper;
 using System.Diagnostics;
 
-namespace ATC.modules.CSE
+namespace ATC.Lib.modules.CSE
 {
 	public class CronScriptExecutor : ATCModule
 	{
@@ -67,6 +67,7 @@ namespace ATC.modules.CSE
 			{
 				var id = i++;
 				var t = new Thread(() => { ExecuteSingle(entry.script, entry.proxy, id); });
+				Thread.Sleep(500);
 
 				processes.Add(t);
 				entryDict.Add(t, entry);
@@ -130,8 +131,8 @@ namespace ATC.modules.CSE
 				var sw = Stopwatch.StartNew();
 				output = ProcessHelper.ProcExecute(entry.path, entry.parameter, string.IsNullOrWhiteSpace(entry.workingdirectory) ? null : entry.workingdirectory, (s, txt) =>
 				{
-					if (s == ProcessHelperStream.StdErr) LogProxy(proxy, $"[E] {txt}");
-					if (s == ProcessHelperStream.StdOut) LogProxy(proxy, $"[O] {txt}");
+					if (s == ProcessHelperStream.StdErr) LogProxyOnly(proxy, $"[E] {txt}");
+					if (s == ProcessHelperStream.StdOut) LogProxyOnly(proxy, $"[O] {txt}");
 				});
 				sw.Stop();
 
@@ -152,6 +153,24 @@ namespace ATC.modules.CSE
 			var dlog = $"> {output.Command}\n\n\n\n{output.StdCombined}\n\n\n\nExitcode: {output.ExitCode}";
 
 			LogNewFile(new[]{"Output", FilenameHelper.StripStringForFilename(entry.name), $"Run_{DateTime.Now:yyyy-MM-dd_HH-mm-ss_ffff}.txt"}, dlog);
+
+			var op1 = "========================  [" + id + "]-STDOUT  ========================";
+			var op2 = "========================  [" + id + "]-STDERR  ========================";
+
+			var b = new StringBuilder();
+			b.AppendLine(string.Format(@"Finished script [{2}] {0} with {1}", entry.name, output.ExitCode, id));
+			b.AppendLine();
+			b.AppendLine($"{op1}\n{output.StdOut}\n{new string('=', op1.Length)}");
+			b.AppendLine();
+			b.AppendLine();
+			if (!string.IsNullOrWhiteSpace(output.StdErr))
+			{
+				b.AppendLine($"{op2}\n{output.StdErr}\n{new string('=', op2.Length)}");
+				b.AppendLine();
+				b.AppendLine();
+			}
+
+			LogRoot(b.ToString());
 
 			if (output.ExitCode != 0 && entry.failOnExitCode)
 			{

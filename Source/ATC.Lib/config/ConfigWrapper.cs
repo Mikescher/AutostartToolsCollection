@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.IO;
-using ATC.Json;
+using ATC.Lib.Json;
 
-namespace ATC.config
+namespace ATC.Lib.config
 {
 	public class ConfigWrapper
 	{

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 
-namespace ATC.Json
+namespace ATC.Lib.Json
 {
 	// https://stackoverflow.com/a/28633769/1761622
 	public class JsonGenericDictionaryOrArrayConverter : JsonConverter

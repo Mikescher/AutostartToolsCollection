@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ATC.modules.TVC
+namespace ATC.Lib.modules.TVC
 {
 	class LambdaEqualityComparer<T> : IEqualityComparer<T>
 	{

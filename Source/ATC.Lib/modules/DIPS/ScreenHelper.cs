@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace ATC.modules.DIPS
+namespace ATC.Lib.modules.DIPS
 {
 	public enum MonitorConstellation
 	{

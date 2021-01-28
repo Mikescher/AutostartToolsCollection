@@ -1,9 +1,9 @@
-﻿using ATC.UI;
+﻿using ATC.Lib;
 using MSHC.WPF.MVVM;
 using System;
 using System.Windows.Threading;
 
-namespace ATC
+namespace ATC.UI
 {
     public class MainWindowViewmodel: ObservableObject
     {

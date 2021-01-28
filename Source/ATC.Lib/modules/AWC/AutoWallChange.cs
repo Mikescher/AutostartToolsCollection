@@ -1,4 +1,4 @@
-﻿using ATC.config;
+﻿using ATC.Lib.config;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace ATC.modules.AWC
+namespace ATC.Lib.modules.AWC
 {
 	public class AutoWallChange : ATCModule
 	{

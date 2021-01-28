@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ATC.modules.TVC.Formatter
+namespace ATC.Lib.modules.TVC.Formatter
 {
 	class Substring : TVCTransformators
 	{

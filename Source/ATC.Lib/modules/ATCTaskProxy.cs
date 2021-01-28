@@ -2,7 +2,7 @@
 using MSHC.WPF.MVVM;
 using System;
 
-namespace ATC
+namespace ATC.Lib
 {
     public enum ProxyState
     {

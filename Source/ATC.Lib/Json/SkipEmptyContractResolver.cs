@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace ATC.Json
+namespace ATC.Lib.Json
 {
 	// https://stackoverflow.com/a/18486790/1761622
 	public class SkipEmptyContractResolver : DefaultContractResolver

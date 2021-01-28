@@ -1,5 +1,5 @@
 ﻿
-namespace ATC.config
+namespace ATC.Lib.config
 {
 	public class ATCSettings : SettingsModule
 	{

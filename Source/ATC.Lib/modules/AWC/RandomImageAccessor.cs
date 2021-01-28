@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace ATC.modules.AWC
+namespace ATC.Lib.modules.AWC
 {
 	public class RandomImageAccessor
 	{

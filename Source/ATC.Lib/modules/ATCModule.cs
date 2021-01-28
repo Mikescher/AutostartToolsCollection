@@ -1,10 +1,10 @@
-﻿using ATC.config;
+﻿using ATC.Lib.config;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace ATC
+namespace ATC.Lib
 {
 	public abstract class ATCModule
 	{
@@ -34,6 +34,11 @@ namespace ATC
 		protected void LogProxy(ATCTaskProxy p, string text = "")
 		{
 			logger.Log(Modulename, p.Subcat, text);
+		}
+
+		protected void LogProxyOnly(ATCTaskProxy p, string text = "")
+		{
+			logger.Log(Modulename, p.Subcat, text, true);
 		}
 
 		protected void LogNewFile(string[] path, string text)

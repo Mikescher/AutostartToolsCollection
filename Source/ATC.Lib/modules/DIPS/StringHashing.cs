@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ATC.modules.DIPS
+namespace ATC.Lib.modules.DIPS
 {
 	public class StringHashing
 	{
