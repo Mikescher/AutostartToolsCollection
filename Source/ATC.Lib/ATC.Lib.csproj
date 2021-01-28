@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    
+    <RootNamespace>ATC</RootNamespace>
+    <AssemblyTitle>ATC.Lib</AssemblyTitle>
+    
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <AssemblyFileVersion>2.0.0.0</AssemblyFileVersion>
+    <AssemblyInformationalVersion>2.0.0.0</AssemblyInformationalVersion>
+
+    <OutDir>..\..\Bin\Lib\$(Configuration)\</OutDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DesktopAPI\DesktopAPI.csproj" />
+    <ProjectReference Include="..\CSharpUtils\LanguageUtils\LanguageUtils.csproj" />
+    <ProjectReference Include="..\CSharpUtils\WPFUtils\WPFUtils.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+  </ItemGroup>
+  
+</Project>
