@@ -1,5 +1,6 @@
 ﻿using ATC.config;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -8,7 +9,8 @@ namespace ATC
 	public abstract class ATCModule
 	{
 		private readonly ATCLogger logger;
-		private readonly string modulename;
+
+		protected readonly string Modulename;
 
 		protected readonly SettingsModule SettingsBase;
 		protected readonly string WorkingDirectory;
@@ -18,20 +20,25 @@ namespace ATC
 		{
 			logger = l;
 			SettingsBase = s;
-			modulename = m;
-			WorkingDirectory = Path.Combine(wd, modulename);
+			Modulename = m;
+			WorkingDirectory = Path.Combine(wd, Modulename);
 			Directory.CreateDirectory(WorkingDirectory);
 			StartTime = DateTime.Now;
 		}
 
-		protected void Log(string text = "")
+		protected void LogRoot(string text = "")
 		{
-			logger.Log(modulename, text);
+			logger.Log(Modulename, null, text);
+		}
+
+		protected void LogProxy(ATCTaskProxy p, string text = "")
+		{
+			logger.Log(Modulename, p.Subcat, text);
 		}
 
 		protected void LogNewFile(string[] path, string text)
 		{
-			logger.LogNewFile(modulename, path, text);
+			logger.LogNewFile(Modulename, path, text);
 		}
 
 		protected void LogHeader(string fullname)
@@ -43,13 +50,13 @@ namespace ATC
 			string dL = new string(' ', ((79 - 2 - date.Length) / 2));
 			string dR = new string(' ', (79 - 2 - date.Length - dL.Length));
 
-			Log();
-			Log(string.Format(@"{0}  {1}  {2}", rL, fullname, rR));
-			Log(string.Format("#{0}#", new string(' ', 77)));
-			Log(string.Format("#{0}{1}{2}#", dL, date, dR));
-			Log(string.Format("#{0}#", new string(' ', 77)));
-			Log(new string('#', 79));
-			Log();
+			LogRoot();
+			LogRoot(string.Format(@"{0}  {1}  {2}", rL, fullname, rR));
+			LogRoot(string.Format("#{0}#", new string(' ', 77)));
+			LogRoot(string.Format("#{0}{1}{2}#", dL, date, dR));
+			LogRoot(string.Format("#{0}#", new string(' ', 77)));
+			LogRoot(new string('#', 79));
+			LogRoot();
 		}
 
 		public static void ShowExtMessage(string title, string msg)
@@ -79,5 +86,7 @@ namespace ATC
 		}
 
 		public abstract void Start();
+
+		public abstract List<ATCTaskProxy> Init(ATCTaskProxy root);
 	}
 }

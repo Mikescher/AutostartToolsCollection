@@ -19,7 +19,10 @@ namespace ATC
 
 		public ATCProgram()
 		{
+			var args = new CommandLineArguments(Environment.GetCommandLineArgs(), false);
+
 			workingDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"ATC\");
+			if (args.Contains("dir")) workingDirectory = args.GetStringDefault("dir", workingDirectory);
 
 			logger = new ATCLogger(workingDirectory);
 			config = new ConfigWrapper(workingDirectory);
@@ -42,6 +45,11 @@ namespace ATC
 				var dips = new DesktopIconPositionSaver(logger, config.settings.dips, workingDirectory);
 				var tvc = new TextVersionControl(logger, config.settings.tvc, workingDirectory);
 				var cse = new CronScriptExecutor(logger, config.settings.cse, workingDirectory);
+
+				if (doAWC) awc.Init();
+				if (doDPS) dips.Init();
+				if (doTVC) tvc.Init();
+				if (doCSE) cse.Init();
 
 				if (doAWC) awc.Start();
 				Thread.Sleep(500);

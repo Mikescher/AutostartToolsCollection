@@ -3,10 +3,81 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ATC.UI"
+        xmlns:local="clr-namespace:ATC" xmlns:ectrl="clr-namespace:MSHC.WPF.Controls;assembly=WPFUtils" 
+        xmlns:conv="clr-namespace:MSHC.WPF.Converter;assembly=WPFUtils" 
+        xmlns:localconv="clr-namespace:ATC.Converter"
+        Icon="/Resources/IconMain.png"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        d:DataContext="{d:DesignInstance local:MainWindowViewmodel}"
+        ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="CenterScreen"
+        GotFocus="Window_GotFocus"
+        GotKeyboardFocus="Window_GotKeyboardFocus"
+        MouseDown="Window_MouseDown"
+        PreviewMouseDown="Window_PreviewMouseDown"
+        Closing="Window_Closing"
+        Title="AutostartToolsCollection [UI]" Height="950" Width="800">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="3*" />
+            <RowDefinition Height="16" />
+        </Grid.RowDefinitions>
+
+        <ListBox Grid.Row="0" Margin="2" ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}">
+
+            <ListBox.Template>
+                <ControlTemplate>
+                    <WrapPanel IsItemsHost="True"/>
+                </ControlTemplate>
+            </ListBox.Template>
+            
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Height="48" Width="48" BorderThickness="1" Margin="2" BorderBrush="#888">
+                        <Grid Background="{Binding State, Converter={localconv:ProxyStateToColor}}">
+
+                            <ectrl:SpinnerControl
+                                          HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,3,0,3"
+                                          SpinnerType="Circles" Diameter="22"  
+                                          ContinuousSizeReduction="0"
+                                          Visibility="{Binding State, Converter={conv:EnumEqualsToVisibility}, ConverterParameter='Running'}"
+                                          Fill="#333"/>
+
+                            <ectrl:SpinnerControl
+                                          HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,3,0,3"
+                                          SpinnerType="Ring" Diameter="22"  
+                                          ContinuousSizeReduction="0"
+                                          Visibility="{Binding State, Converter={conv:EnumEqualsToVisibility}, ConverterParameter='Waiting'}"
+                                          Fill="#888"/>
+                            
+                            <Label Content="{Binding Time}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Padding="0" FontFamily="Courier New" FontWeight="Bold" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            
+        </ListBox>
+
+        <GridSplitter Margin="1,0" Grid.Row="1" Background="LightGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="3" Focusable="False" />
+
+        <Grid Grid.Row="2" Margin="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Label   Grid.Row="0" Margin="0" Content="{Binding SelectedTask.Title}" />
+            <TextBox Grid.Row="1" Margin="2" 
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Visible"
+                     Text="{Binding SelectedTask.Log}" 
+                     FontFamily="Courier New" IsReadOnly="True" IsReadOnlyCaretVisible="True" />
+        </Grid>
+
+
+        <ProgressBar Grid.Row="3" Minimum="0" Maximum="100" Value="{Binding CloseProgress}" />
+
     </Grid>
 </Window>

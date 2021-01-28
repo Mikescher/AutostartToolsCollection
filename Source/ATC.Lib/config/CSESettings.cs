@@ -15,7 +15,8 @@ namespace ATC.config
 	{
 		public string name = "";
 		public string path = "";
-		public string parameter = "";
+		public string parameter = null;
+		public string workingdirectory = "";
 		public int timeout = 2500;
 
 		public bool failOnStdErr   = true;

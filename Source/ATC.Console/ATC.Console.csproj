@@ -5,7 +5,7 @@
     <TargetFramework>net48</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     
-    <RootNamespace>ATC</RootNamespace>
+    <RootNamespace>ATC.Console</RootNamespace>
     <AssemblyTitle>ATC.Console</AssemblyTitle>
     
     <AssemblyVersion>1.1.14.0</AssemblyVersion>

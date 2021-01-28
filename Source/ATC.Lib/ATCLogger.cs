@@ -11,28 +11,45 @@ namespace ATC
 
 		private readonly List<Tuple<string, string>> loglist = new List<Tuple<string, string>>();
 		private readonly List<string> fulllog = new List<string>();
+		private readonly Dictionary<string, ATCTaskProxy> listener = new Dictionary<string, ATCTaskProxy>();
 		private readonly string rootWorkingDir;
 		private readonly string logDir;
 		private readonly DateTime startTime;
+
+		public static ATCLogger Inst;
 
 		public ATCLogger(string workingDir)
 		{
 			rootWorkingDir = workingDir;
 			logDir = Path.Combine(workingDir, "logs");
 			startTime = DateTime.Now;
+
+			Inst = this;
 		}
 
-		public void Log(string cat, string text)
+		public static void AddListener(string cat, ATCTaskProxy proxy)
 		{
+			Inst?.listener.Add(cat, proxy);
+		}
+
+		public void Log(string rootcat, string subcat, string text)
+		{
+			var fullcat = rootcat;
+			if (subcat != null) fullcat += "::" + subcat;
+
 			lock (lck)
 			{
-				loglist.Add(Tuple.Create(cat, text));
+				loglist.Add(Tuple.Create(rootcat, text));
 				fulllog.Add(text);
 				Console.WriteLine(text);
+
+				if (listener.TryGetValue(string.Empty, out var l0)) l0.AddLog(text);
+				if (listener.TryGetValue(rootcat, out var l1)) l1.AddLog(text);
+				if (subcat != null && listener.TryGetValue(fullcat, out var l2)) l2.AddLog(text);
 			};
 		}
 
-		public void LogNewFile(string modulename, string[] path, string text)
+        public void LogNewFile(string modulename, string[] path, string text)
 		{
 			var fulldir = Path.Combine(new []{ rootWorkingDir, modulename }.Concat(path.Reverse().Skip(1).Reverse()).ToArray());
 			var fullpath = Path.Combine(fulldir, path.Last());

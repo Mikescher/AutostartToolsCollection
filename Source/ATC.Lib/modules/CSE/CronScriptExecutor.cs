@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using MSHC.Util.Helper;
+using System.Diagnostics;
 
 namespace ATC.modules.CSE
 {
@@ -13,45 +14,59 @@ namespace ATC.modules.CSE
 	{
 		private CSESettings settings { get { return (CSESettings)SettingsBase; } }
 
+		private ATCTaskProxy rootTask;
+		private List<(CSEEntry script, ATCTaskProxy proxy)> _tasks = new List<(CSEEntry, ATCTaskProxy)>();
+
 		public CronScriptExecutor(ATCLogger l, CSESettings s, string wd)
 			: base(l, s, wd, "CSE")
 		{
 			// NOP
 		}
 
-		public override void Start()
+		public override List<ATCTaskProxy> Init(ATCTaskProxy root)
 		{
-			LogHeader("CronScriptExecutor");
+			rootTask = root;
 
 			if (!settings.CSE_enabled)
 			{
-				Log("CSE not enabled.");
-				return;
+				LogRoot("CSE not enabled.");
+				rootTask.FinishSuccess();
+				return new List<ATCTaskProxy>();
 			}
 
 			if (settings.scripts.Select(p => p.name).Distinct().Count() != settings.scripts.Count)
 			{
+				rootTask.SetErrored();
 				throw new Exception("Script names in CSE must be unique");
 			}
 
-			ExecuteParallel(settings.scripts);
-			Log();
+			_tasks = settings.scripts.Select(p => (p, new ATCTaskProxy($"Execute {p.name}", Modulename, Guid.NewGuid()))).ToList();
+			
+			return _tasks.Select(p => p.proxy).ToList();
 		}
 
-		private void ExecuteParallel(List<CSEEntry> scripts)
+		public override void Start()
 		{
-			if (! scripts.Any()) return;
+			LogHeader("CronScriptExecutor");
 
-			var timeout = scripts.Max(p => p.timeout);
+			ExecuteParallel();
+			LogRoot();
+		}
+
+		private void ExecuteParallel()
+		{
+			if (!_tasks.Any()) return;
+
+			var timeout = _tasks.Max(p => p.script.timeout);
 
 			var processes = new List<Thread>();
-			var entryDict = new Dictionary<Thread, CSEEntry>();
+			var entryDict = new Dictionary<Thread, (CSEEntry script, ATCTaskProxy proxy)>();
 
 			var i = 0;
-			foreach (var entry in scripts)
+			foreach (var entry in _tasks)
 			{
 				var id = i++;
-				var t = new Thread(() => { ExecuteSingle(entry, id); });
+				var t = new Thread(() => { ExecuteSingle(entry.script, entry.proxy, id); });
 
 				processes.Add(t);
 				entryDict.Add(t, entry);
@@ -68,7 +83,7 @@ namespace ATC.modules.CSE
 				foreach (var finProc in processes.Where(p => !p.IsAlive).ToList())
 				{
 					var finProcInfo = entryDict[finProc];
-					Log("Process " + finProcInfo.name + " finished.");
+					LogRoot("Process " + finProcInfo.script.name + " finished.");
 					processes.Remove(finProc);
 				}
 			}
@@ -76,42 +91,61 @@ namespace ATC.modules.CSE
 			foreach (var errProc in processes)
 			{
 				var errProcInfo = entryDict[errProc];
-				Log(errProcInfo.name + " Process still running - continue ATC...");
+				LogRoot(errProcInfo.script.name + " Process still running - continue ATC...");
 
-				if (errProcInfo.failOnTimeout)
+				if (errProcInfo.script.failOnTimeout)
 				{
-					ShowExternalMessage($"CSE :: Process ({errProcInfo.name}) timeout", "continue ATC...");
+					errProcInfo.proxy.SetErrored();
+					LogProxy(errProcInfo.proxy, $"CSE :: Process timeout -- continue ATC...");
 				}
 			}
 
 			if (!processes.Any())
 			{
-				Log("All processes finished");
+				LogRoot("All processes finished");
 			}
 
 		}
 
-		private void ExecuteSingle(CSEEntry entry, int id)
+		private void ExecuteSingle(CSEEntry entry, ATCTaskProxy proxy, int id)
 		{
+			proxy.Start();
+
 			if (entry.path.Contains("\\") && !File.Exists(entry.path))
 			{
-				Log($@"Script {entry.path} does not exist - skipping execution");
-				ShowExternalMessage($"CSE :: Script not found", $"Script\n{entry.path}\ndoes not exist for\n{entry.name}");
+				LogProxy(proxy, $@"Script {entry.path} does not exist - skipping execution");
+				proxy.SetErrored();
 				return;
 			}
 
-			Log($@"Start script [{id}] {entry.name}");
+			LogProxy(proxy, $@"Start script [{id}] {entry.name}");
 
 			ProcessOutput output;
 			try
 			{
-				output = ProcessHelper.ProcExecute(entry.path, entry.parameter);
+				LogProxy(proxy, string.Empty);
+				LogProxy(proxy, $"> {entry.path} {entry.parameter.Replace("\r", "\\r").Replace("\n", "\\n")}");
+				LogProxy(proxy, string.Empty);
+
+				var sw = Stopwatch.StartNew();
+				output = ProcessHelper.ProcExecute(entry.path, entry.parameter, string.IsNullOrWhiteSpace(entry.workingdirectory) ? null : entry.workingdirectory, (s, txt) =>
+				{
+					if (s == ProcessHelperStream.StdErr) LogProxy(proxy, $"[E] {txt}");
+					if (s == ProcessHelperStream.StdOut) LogProxy(proxy, $"[O] {txt}");
+				});
+				sw.Stop();
+
+				LogProxy(proxy, string.Empty);
+				LogProxy(proxy, string.Empty);
+				LogProxy(proxy, $"Exitcode: {output.ExitCode}");
+				LogProxy(proxy, $"Finished after {sw.Elapsed:mm\\:ss\\.fff}");
+				LogProxy(proxy, string.Empty);
 			}
 			catch (Exception e)
 			{
-				Log($@"Process creation failed for {entry.name}");
-				Log(e.ToString());
-				ShowExternalMessage($@"CSE :: Process creation failed for {entry.name}", e.ToString());
+				LogProxy(proxy, $@"Process creation failed for {entry.name}");
+				LogProxy(proxy, e.ToString());
+				proxy.SetErrored();
 				return;
 			}
 
@@ -119,31 +153,22 @@ namespace ATC.modules.CSE
 
 			LogNewFile(new[]{"Output", FilenameHelper.StripStringForFilename(entry.name), $"Run_{DateTime.Now:yyyy-MM-dd_HH-mm-ss_ffff}.txt"}, dlog);
 
-			var op1 = "========================  [" + id + "]-STDOUT  ========================";
-			var op2 = "========================  [" + id + "]-STDERR  ========================";
-
-			var b = new StringBuilder();
-			b.AppendLine(string.Format(@"Finished script [{2}] {0} with {1}", entry.name, output.ExitCode, id));
-			b.AppendLine();
-			b.AppendLine($"{op1}\n{output.StdOut}\n{new string('=', op1.Length)}");
-			b.AppendLine();
-			b.AppendLine();
-			if (!string.IsNullOrWhiteSpace(output.StdErr))
-			{
-				b.AppendLine($"{op2}\n{output.StdErr}\n{new string('=', op2.Length)}");
-				b.AppendLine();
-				b.AppendLine();
-			}
-
-			Log(b.ToString());
-
 			if (output.ExitCode != 0 && entry.failOnExitCode)
 			{
-				ShowExternalMessage($"CSE :: Script returned error", b.ToString());
+				LogProxy(proxy, $"Script failed on ExitCode {output.ExitCode}");
+				proxy.SetErrored();
+				return;
 			}
 			else if (!string.IsNullOrWhiteSpace(output.StdErr) && entry.failOnStdErr)
 			{
-				ShowExternalMessage($"CSE :: Script returned stderr", b.ToString());
+				LogProxy(proxy, $"Script failed on stderr output");
+				proxy.SetErrored();
+				return;
+			}
+			else
+			{
+				proxy.FinishSuccess();
+				return;
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 ﻿using ATC.config;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -16,57 +17,81 @@ namespace ATC.modules.AWC
 
 		private string exclusionfileHD1080;
 
+		private ATCTaskProxy rootTask;
+		private ATCTaskProxy _task;
+
 		public AutoWallChange(ATCLogger l, AWCSettings s, string wd)
 			: base(l, s, wd, "AWC")
 		{
 
 		}
 
-		public override void Start()
+		public override List<ATCTaskProxy> Init(ATCTaskProxy root)
 		{
-			LogHeader("AutoWallChange");
+			rootTask = root;
 
 			if (!Settings.AWC_enabled)
 			{
-				Log("AWC not enabled.");
-				return;
+				LogRoot("AWC not enabled.");
+				rootTask.FinishSuccess();
+				_task = null;
+				return new List<ATCTaskProxy>();
 			}
 
-			if (String.IsNullOrWhiteSpace(Settings.pathWallpaperFile))
+			_task = new ATCTaskProxy($"Update Wallpaper", Modulename, Guid.NewGuid());
+			return new List<ATCTaskProxy>() { _task };
+        }
+
+		public override void Start()
+		{
+			if (_task == null) return;
+			_task.Start();
+
+			LogHeader("AutoWallChange");
+
+			if (string.IsNullOrWhiteSpace(Settings.pathWallpaperFile))
 			{
-				Log("pathWallpaperFile not set");
+				LogProxy(_task, "pathWallpaperFile not set");
+				_task.SetErrored();
+				rootTask.SetErrored();
 				return;
 			}
 
 			if (Path.GetExtension(Settings.pathWallpaperFile) != ".bmp")
 			{
-				Log("pathWallpaper must direct to a *.bmp file");
+				LogProxy(_task, "pathWallpaper must direct to a *.bmp file");
+				_task.SetErrored();
+				rootTask.SetErrored();
 				return;
 			}
 
 			exclusionfileHD1080 = Path.Combine(WorkingDirectory, "exclusions.config");
 
-			Log("Monitor Constellation: " + GetConstellationString());
+			LogProxy(_task, "Monitor Constellation: " + GetConstellationString());
 
 			if (Screen.AllScreens.Any(p => !(Eq(p, 1920, 1080) || Eq(p, 1280, 1024))))
 			{
-				Log("Unknown Monitor Constellation");
+				LogProxy(_task, "Unknown Monitor Constellation");
+				_task.SetErrored();
 				return;
 			}
 
-			Log();
+			LogProxy(_task, "");
 
 			var img = CreateMultiMonitorImage();
 
 			if (img == null)
 			{
-				Log("Error while creating MultiMonitor Wallpaper");
+				LogProxy(_task, "Error while creating MultiMonitor Wallpaper");
+				_task.SetErrored();
 				return;
 			}
 
 			img.Save(Settings.pathWallpaperFile, ImageFormat.Bmp);
 
 			WindowsWallpaperAPI.Set(Settings.pathWallpaperFile, WindowsWallpaperAPI.W_WP_Style.Tiled);
+
+			_task.FinishSuccess();
 		}
 
 		private string GetConstellationString() => string.Join(" -- ", Screen.AllScreens.Select(p => string.Format("[{0}x{1}]", p.Bounds.Width, p.Bounds.Height)));
@@ -142,14 +167,14 @@ namespace ATC.modules.AWC
 
 				if (i1 == null)
 				{
-					Log("No Images found.");
+					LogProxy(_task, "No Images found.");
 					return null;
 				}
-				Log("[HD1080]  Images Found:    " + found);
-				Log("[HD1080]  Images Excluded: " + excluded);
-				Log("[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
+				LogProxy(_task, "[HD1080]  Images Found:    " + found);
+				LogProxy(_task, "[HD1080]  Images Excluded: " + excluded);
+				LogProxy(_task, "[HD1080]  Image Choosen:   " + Path.GetFileName(choosen));
 
-				Log();
+				LogProxy(_task, "");
 
 				return i1;
 			}
@@ -164,14 +189,14 @@ namespace ATC.modules.AWC
 
 				if (i2 == null)
 				{
-					Log("No Images found.");
+					LogProxy(_task, "No Images found.");
 					return null;
 				}
 
-				Log("[ SXGA ]  Images Found:    " + found);
-				Log("[ SXGA ]  Image Choosen:   " + Path.GetFileName(choosen));
+				LogProxy(_task, "[ SXGA ]  Images Found:    " + found);
+				LogProxy(_task, "[ SXGA ]  Image Choosen:   " + Path.GetFileName(choosen));
 
-				Log();
+				LogProxy(_task, "");
 
 				if (!Settings.EnableSXGATux) return i2;
 
@@ -180,12 +205,12 @@ namespace ATC.modules.AWC
 
 				if (i3 == null)
 				{
-					Log("No Images found.");
+					LogProxy(_task, "No Images found.");
 					return null;
 				}
 
-				Log("[ TUX  ]  Images Found:    " + found);
-				Log("[ TUX  ]  Image Choosen:   " + Path.GetFileName(choosen));
+				LogProxy(_task, "[ TUX  ]  Images Found:    " + found);
+				LogProxy(_task, "[ TUX  ]  Image Choosen:   " + Path.GetFileName(choosen));
 
 				return MakeTuxImage(i2, i3);
 			}

@@ -15,25 +15,41 @@ namespace ATC.modules.DIPS
 	{
 		private DIPSSettings settings { get { return (DIPSSettings)SettingsBase; } }
 
+		private ATCTaskProxy rootTask;
+		private ATCTaskProxy _task;
+
 		public DesktopIconPositionSaver(ATCLogger l, DIPSSettings s, string wd)
 			: base(l, s, wd, "DIPS")
 		{
 
 		}
 
-		public override void Start()
+		public override List<ATCTaskProxy> Init(ATCTaskProxy root)
 		{
-			LogHeader("DesktopIconPositionSaver");
+			rootTask = root;
 
 			if (!settings.DIPS_enabled)
 			{
-				Log("DIPS not enabled.");
-				return;
+				LogRoot("DIPS not enabled.");
+				rootTask.FinishSuccess();
+				_task = null;
+				return new List<ATCTaskProxy>();
 			}
+
+			_task = new ATCTaskProxy($"Save Desktop", Modulename, Guid.NewGuid());
+			return new List<ATCTaskProxy>() { _task };
+		}
+
+		public override void Start()
+		{
+			if (_task == null) return;
+			_task.Start();
+
+			LogHeader("DesktopIconPositionSaver");
 
 			LVItem[] dicons = RemoteListView.GetDesktopListView();
 
-			Log(String.Format(@"Found {0} Icons on Desktop", dicons.Length));
+			LogProxy(_task, $@"Found {dicons.Length} Icons on Desktop");
 
 			JObject iconsav = new JObject();
 
@@ -97,7 +113,9 @@ namespace ATC.modules.DIPS
 
 			string iconsav_content = iconsav.ToString(Formatting.Indented);
 
-			vcontrolIconSav(iconsav_content);
+			VcontrolIconSav(iconsav_content);
+
+			_task.FinishSuccess();
 		}
 
 		private bool IsValidDateTimeFileName(string path)
@@ -113,7 +131,7 @@ namespace ATC.modules.DIPS
 				return false;
 		}
 
-		private void vcontrolIconSav(string iconsav_content)
+		private void VcontrolIconSav(string iconsav_content)
 		{
 			string outputDirectory = Path.Combine(WorkingDirectory, "history");
 			Directory.CreateDirectory(outputDirectory);
@@ -123,7 +141,8 @@ namespace ATC.modules.DIPS
 
 			if (File.Exists(filepath))
 			{
-				Log(String.Format(@"File {0} does already exist in DIPS/history directory", filepath));
+				LogProxy(_task, $"File {filepath} does already exist in DIPS/history directory");
+				_task.SetErrored();
 				return;
 			}
 
@@ -142,27 +161,31 @@ namespace ATC.modules.DIPS
 
 			if (last_hash != curr_hash)
 			{
-				Log(String.Format("Desktop Icons differ from last Version - creating new Entry"));
-				Log();
-				Log(String.Format("MD5 Current File: {0}", curr_hash));
-				Log(String.Format("MD5 Previous File: {0}", last_hash));
-				Log();
+				LogProxy(_task, string.Format("Desktop Icons differ from last Version - creating new Entry"));
+				LogProxy(_task, "");
+				LogProxy(_task, string.Format("MD5 Current File: {0}", curr_hash));
+				LogProxy(_task, string.Format("MD5 Previous File: {0}", last_hash));
+				LogProxy(_task, "");
 
 				try
 				{
 					File.WriteAllText(filepath, iconsav_content);
-					Log(string.Format(@"Desktop icons succesfully backuped to '{0}'", filepath));
+					LogProxy(_task, string.Format(@"Desktop icons succesfully backuped to '{0}'", filepath));
+					_task.FinishSuccess();
+					return;
 				}
 				catch (Exception ex)
 				{
-					Log(string.Format(@"ERROR backuping icons to '{0}' : {1}", filepath, ex.Message));
-					
-					ShowExtMessage(string.Format(@"ERROR backuping icons to '{0}'", filepath), ex.ToString());
+					LogProxy(_task, string.Format(@"ERROR backuping icons to '{0}' : {1}", filepath, ex.Message));
+					_task.SetErrored();
+					return;
 				}
 			}
 			else
 			{
-				Log(String.Format("No changes in desktop icons detected (MD5: {0})", curr_hash));
+				LogProxy(_task, string.Format("No changes in desktop icons detected (MD5: {0})", curr_hash));
+				_task.FinishSuccess();
+				return;
 			}
 		}
 	}

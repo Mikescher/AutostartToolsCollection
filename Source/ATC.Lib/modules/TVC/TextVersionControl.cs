@@ -14,45 +14,68 @@ namespace ATC.modules.TVC
 	{
 		private TVCSettings Settings => (TVCSettings)SettingsBase;
 
+		private ATCTaskProxy rootTask;
+		private List<(TVCEntry entry, ATCTaskProxy proxy)> _tasks = new List<(TVCEntry, ATCTaskProxy)>();
+
 		public TextVersionControl(ATCLogger l, TVCSettings s, string wd)
 			: base(l, s, wd, "TVC")
 		{
 			// NOP
 		}
 
-		public override void Start()
+		public override List<ATCTaskProxy> Init(ATCTaskProxy root)
 		{
-			LogHeader("TextVersionControl");
+			rootTask = root;
 
 			if (!Settings.TVC_enabled)
 			{
-				Log("TVC not enabled.");
-				return;
+				LogRoot("TVC not enabled.");
+				rootTask.FinishSuccess();
+				return new List<ATCTaskProxy>();
 			}
 
 			if (string.IsNullOrWhiteSpace(Settings.output))
 			{
-				Log("Outputpath not set.");
-				return;
+				LogRoot("Outputpath not set.");
+				rootTask.SetErrored();
+				return new List<ATCTaskProxy>();
 			}
 
 			if (Settings.paths.Count == 0)
 			{
-				Log("No files in control");
-				return;
+				LogRoot("No files in control");
+				rootTask.SetErrored();
+				return new List<ATCTaskProxy>();
 			}
 
-			foreach (var file in Settings.paths)
+			_tasks = Settings.paths.Select(p => (p, new ATCTaskProxy($"Backup {p.GetFoldername()}", Modulename, Guid.NewGuid()))).ToList();
+
+			return _tasks.Select(p => p.Item2).ToList();
+		}
+
+		public override void Start()
+		{
+			LogHeader("TextVersionControl");
+
+			foreach (var file in _tasks)
 			{
-				if (Settings.cleanHistory)
-					CleanUpHistory(file);
+                try
+				{
+					file.proxy.Start();
 
-				if (file.isRecursiveFolder)
-					ProcessDirectory(file);
-				else
-					ProcessFile(file);
+					if (Settings.cleanHistory) CleanUpHistory(file.entry, file.proxy);
 
-				Log();
+					if (file.entry.isRecursiveFolder) ProcessDirectory(file.entry, file.proxy);
+					else ProcessFile(file.entry, file.proxy);
+
+					LogProxy(file.proxy, "");
+					file.proxy.FinishSuccess();
+				}
+                catch (Exception e)
+                {
+					LogProxy(file.proxy, "Exception: " + e.ToString());
+					file.proxy.SetErrored();
+				}
 			}
 		}
 
@@ -67,11 +90,12 @@ namespace ATC.modules.TVC
 			return false;
 		}
 
-		private void ProcessDirectory(TVCEntry file)
+		private void ProcessDirectory(TVCEntry file, ATCTaskProxy proxy)
 		{
 			if (!Directory.Exists(file.path))
 			{
-				Log($"Directory {file.path} does not exist");
+				LogProxy(proxy, $"Directory {file.path} does not exist");
+				proxy.SetErrored();
 				return;
 			}
 
@@ -80,21 +104,21 @@ namespace ATC.modules.TVC
 			foreach (var subfile in dirfiles)
 			{
 				var subentry = file.CreateSubEntry(subfile);
-				ProcessFile(subentry);
-				Log();
+				ProcessFile(subentry, proxy);
+				LogProxy(proxy, $"");
 			}
 		}
 
-		private void ProcessFile(TVCEntry file)
+		private void ProcessFile(TVCEntry file, ATCTaskProxy proxy)
 		{
 			if (!File.Exists(file.path))
 			{
-				Log($"File {file.path} does not exist");
+				LogProxy(proxy, $"File {file.path} does not exist");
 				return;
 			}
 
 			var original = File.ReadAllText(file.path);
-			var current = Transform(original, file.postprocessors);
+			var current = Transform(original, file.postprocessors, proxy);
 			if (current==null) return;
 
 			var outputpath = file.GetOutputPath(Settings);
@@ -106,7 +130,8 @@ namespace ATC.modules.TVC
 
 			if (File.Exists(filepath))
 			{
-				Log($@"File {filepath} does already exist in ouput directory");
+				LogProxy(proxy, $@"File {filepath} does already exist in ouput directory");
+				proxy.SetErrored();
 				return;
 			}
 
@@ -124,21 +149,21 @@ namespace ATC.modules.TVC
 
 			if (lastHash != currHash)
 			{
-				Log($"File {file.GetFoldername()} differs from last Version - copying current version");
-				Log($"MD5 Current File:  {currHash}");
-				Log($"MD5 Previous File: {lastHash}");
+				LogProxy(proxy, $"File {file.GetFoldername()} differs from last Version - copying current version");
+				LogProxy(proxy, $"MD5 Current File:  {currHash}");
+				LogProxy(proxy, $"MD5 Previous File: {lastHash}");
 
 				try
 				{
 					if (file.warnOnDiff && versions.Count > 0)
 					{
-						ShowDiff(file, last, current, versions[0], file.path, file.prediffprocessors);
+						ShowDiff(file, last, current, versions[0], file.path, file.prediffprocessors, proxy);
 					}
 				}
 				catch (Exception ex)
 				{
-					Log($@"ERROR diffing File '{file.GetFoldername()}' to '{filepath}' : {ex.Message}");
-					ShowExtMessage($@"ERROR diffing File '{file.GetFoldername()}' to '{filepath}'", ex.ToString());
+					LogProxy(proxy, $@"ERROR diffing File '{file.GetFoldername()}' to '{filepath}' : {ex.Message}");
+					proxy.SetErrored();
 				}
 
 				try
@@ -146,27 +171,35 @@ namespace ATC.modules.TVC
 					if (original != current)
 					{
 						File.WriteAllText(filepath, current, Encoding.UTF8);
-						Log($@"File '{file.GetFoldername()}' succesfully written to '{filepath}' (UTF-8)");
+						LogProxy(proxy, $@"File '{file.GetFoldername()}' succesfully written to '{filepath}' (UTF-8)");
+						proxy.FinishSuccess();
+						return;
 					}
 					else
 					{
 						File.Copy(file.path, filepath, false);
-						Log($@"File '{file.GetFoldername()}' succesfully copied to '{filepath}'");
+						LogProxy(proxy, $@"File '{file.GetFoldername()}' succesfully copied to '{filepath}'");
+						proxy.FinishSuccess();
+						return;
 					}
 				}
 				catch (Exception ex)
 				{
-					Log($@"ERROR copying File '{file.GetFoldername()}' to '{filepath}' : {ex.Message}");
-					ShowExtMessage($@"ERROR copying File '{file.GetFoldername()}' to '{filepath}'", ex.ToString());
+					LogProxy(proxy, $@"ERROR copying File '{file.GetFoldername()}' to '{filepath}' : {ex.Message}");
+					LogProxy(proxy, ex.ToString());
+					proxy.SetErrored();
+					return;
 				}
 			}
 			else
 			{
-				Log($"File {file.GetFoldername()} remains unchanged (MD5: {currHash})");
+				LogProxy(proxy, $"File {file.GetFoldername()} remains unchanged (MD5: {currHash})");
+				proxy.FinishSuccess();
+				return;
 			}
 		}
 
-		private string Transform(string input, IEnumerable<TVCTransformatorEntry> processors)
+		private string Transform(string input, IEnumerable<TVCTransformatorEntry> processors, ATCTaskProxy proxy)
 		{
 			var data = input;
 			foreach (var method in processors)
@@ -180,22 +213,22 @@ namespace ATC.modules.TVC
 				}
 				catch (Exception ex)
 				{
-					Log($@"ERROR formatting content:\r\n\r\n{ex.Message}");
-					ShowExtMessage("ERROR formatting content", ex.ToString());
+					LogProxy(proxy, $@"ERROR formatting content:\r\n\r\n{ex.Message}");
+					proxy.SetErrored();
 					return null;
 				}
 			}
 			return data;
 		}
 
-		private void ShowDiff(TVCEntry file, string txtold, string txtnew, string pathOld, string pathNew, List<TVCTransformatorEntry> transform)
+		private void ShowDiff(TVCEntry file, string txtold, string txtnew, string pathOld, string pathNew, List<TVCTransformatorEntry> transform, ATCTaskProxy proxy)
 		{
 			var linesOld = Regex.Split(txtold, @"\r?\n");
 			var linesNew = Regex.Split(txtnew, @"\r?\n");
 
 			bool LineCompare(string x, string y)
 			{
-				return Transform(x, transform) == Transform(y, transform);
+				return Transform(x, transform, proxy) == Transform(y, transform, proxy);
 			}
 
 			var linesMissing = linesOld.Except(linesNew, new LambdaEqualityComparer<string>(LineCompare)).ToList();
@@ -220,11 +253,13 @@ namespace ATC.modules.TVC
 			b.AppendLine();
 			foreach (var line in linesAdded) b.AppendLine(line);
 
-			foreach (var line in linesMissing) Log($"[WarnOnDiff] Line was removed from {file.GetFoldername()}: '{line}'");
+			foreach (var line in linesMissing) LogProxy(proxy, $"[WarnOnDiff] Line was removed from {file.GetFoldername()}: '{line}'");
+
+			LogProxy(proxy, $"TVC :: DiffCheck ({file.GetFoldername()})\n" + b.ToString());
 			ShowExternalMessage($"TVC :: DiffCheck ({file.GetFoldername()})", b.ToString());
 		}
 
-		private void CleanUpHistory(TVCEntry file)
+		private void CleanUpHistory(TVCEntry file, ATCTaskProxy proxy)
 		{
 			var outputpath = file.GetOutputPath(Settings);
 			Directory.CreateDirectory(outputpath);
@@ -248,7 +283,7 @@ namespace ATC.modules.TVC
 
 			for (var i = deletions.Count - 1; i >= 0; i--)
 			{
-				Log($"Cleaned up duplicate Entry in History for {Path.GetFileNameWithoutExtension(file.GetFoldername())}: {Path.GetFileNameWithoutExtension(versions[deletions[i]])}");
+				LogProxy(proxy, $"Cleaned up duplicate Entry in History for {Path.GetFileNameWithoutExtension(file.GetFoldername())}: {Path.GetFileNameWithoutExtension(versions[deletions[i]])}");
 
 				File.Delete(versions[deletions[i]]);
 			}

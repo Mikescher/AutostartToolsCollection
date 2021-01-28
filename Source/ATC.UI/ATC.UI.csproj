@@ -4,8 +4,10 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <UseWPF>true</UseWPF>
+
+    <ApplicationIcon>IconMain.ico</ApplicationIcon>
     
-    <RootNamespace>ATC</RootNamespace>
+    <RootNamespace>ATC.UI</RootNamespace>
     <AssemblyTitle>ATC.UI</AssemblyTitle>
     
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -16,10 +18,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Resource Include="IconMain.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ATC.Lib\ATC.Lib.csproj" />
     <ProjectReference Include="..\DesktopAPI\DesktopAPI.csproj" />
     <ProjectReference Include="..\CSharpUtils\LanguageUtils\LanguageUtils.csproj" />
     <ProjectReference Include="..\CSharpUtils\WPFUtils\WPFUtils.csproj" />
+    <ProjectReference Include="..\SimpleMessagePresenter\SimpleMessagePresenter.csproj" />
   </ItemGroup>
   
 </Project>
