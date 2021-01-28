@@ -33,8 +33,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CSharpUtils\CSharpUtils.csproj" />
     <ProjectReference Include="..\DesktopAPI\DesktopAPI.csproj" />
+    <ProjectReference Include="..\CSharpUtils\LanguageUtils\LanguageUtils.csproj" />
+    <ProjectReference Include="..\CSharpUtils\WPFUtils\WPFUtils.csproj" />
   </ItemGroup>
 
   <ItemGroup>
