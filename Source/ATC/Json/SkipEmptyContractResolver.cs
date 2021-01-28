@@ -13,7 +13,7 @@ namespace ATC.Json
 	// https://stackoverflow.com/a/18486790/1761622
 	public class SkipEmptyContractResolver : DefaultContractResolver
 	{
-		public SkipEmptyContractResolver(bool shareCache = false) : base(shareCache) { }
+		public SkipEmptyContractResolver() : base() { }
 
 		protected override JsonProperty CreateProperty(MemberInfo member,
 			MemberSerialization memberSerialization)
