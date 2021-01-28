@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{47B6EA07-4E7A-4100-9F1F-94FF4D9FDE20}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ATC</RootNamespace>
+    <AssemblyName>ATC</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ATCLogger.cs" />
+    <Compile Include="ATCProgram.cs" />
+    <Compile Include="config\ATCSettings.cs" />
+    <Compile Include="config\AWCSettings.cs" />
+    <Compile Include="config\ConfigWrapper.cs" />
+    <Compile Include="config\CSESettings.cs" />
+    <Compile Include="config\DIPSSettings.cs" />
+    <Compile Include="config\SettingsModule.cs" />
+    <Compile Include="config\TVCSettings.cs" />
+    <Compile Include="Json\SkipEmptyContractResolver.cs" />
+    <Compile Include="modules\ATCModule.cs" />
+    <Compile Include="modules\AWC\AutoWallChange.cs" />
+    <Compile Include="modules\AWC\RandomImageAccessor.cs" />
+    <Compile Include="modules\AWC\WindowsWallpaperAPI.cs" />
+    <Compile Include="modules\CSE\CronScriptExecutor.cs" />
+    <Compile Include="modules\DIPS\DesktopIconPositionSaver.cs" />
+    <Compile Include="modules\DIPS\ScreenHelper.cs" />
+    <Compile Include="modules\DIPS\StringHashing.cs" />
+    <Compile Include="modules\TVC\Formatter\Substring.cs" />
+    <Compile Include="modules\TVC\Formatter\Lowercase.cs" />
+    <Compile Include="modules\TVC\Formatter\Uppercase.cs" />
+    <Compile Include="modules\TVC\Formatter\CSVColumn.cs" />
+    <Compile Include="modules\TVC\Formatter\TrimLeft.cs" />
+    <Compile Include="modules\TVC\Formatter\TrimRight.cs" />
+    <Compile Include="modules\TVC\Formatter\JsonPropFilter.cs" />
+    <Compile Include="modules\TVC\Formatter\NetscapeConverter.cs" />
+    <Compile Include="modules\TVC\Formatter\Unescaper.cs" />
+    <Compile Include="modules\TVC\Formatter\JsonSelector.cs" />
+    <Compile Include="modules\TVC\Formatter\JsonFormatter.cs" />
+    <Compile Include="modules\TVC\Formatter\TVCTransformators.cs" />
+    <Compile Include="modules\TVC\LambdaEqualityComparer.cs" />
+    <Compile Include="modules\TVC\StringHashing.cs" />
+    <Compile Include="modules\TVC\TextVersionControl.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Json\JsonGenericDictionaryOrArrayConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CSharpUtils\CSharpUtils.csproj">
+      <Project>{d661cd9f-8934-496d-8332-bc82aab77598}</Project>
+      <Name>CSharpUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DesktopAPI\DesktopAPI.csproj">
+      <Project>{d4aac464-1106-4a71-9fb3-be3bca1980f0}</Project>
+      <Name>DesktopAPI</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
