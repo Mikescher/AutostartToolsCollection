@@ -29,6 +29,8 @@ namespace DIPSViewer
 		private const int ICON_XOFFSET = 0;
 		private const int ICON_YOFFSET = 10;
 
+		private Desktop _desktop = new Desktop();
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -458,10 +460,7 @@ namespace DIPSViewer
 
 			List<DesktopIcon> icons_prev = (json_prev["icons"] as JArray).Select(p => new DesktopIcon((string)p["title"], (int)p["x"], (int)p["y"])).ToList();
 
-			foreach (DesktopIcon icon in icons_prev)
-			{
-				RemoteListView.SetDesktopPosition(icon.name, new DesktopAPI.Point() { x = icon.x, y = icon.y });
-			}
+			_desktop.SetIconPositions(icons_prev.Select(p => new NamedDesktopPoint(p.name, p.x, p.y)));
 		}
 	}
 }

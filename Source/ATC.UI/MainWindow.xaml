@@ -74,6 +74,7 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
                      ScrollViewer.VerticalScrollBarVisibility="Visible"
                      Text="{Binding SelectedTask.Log}" 
+                     TextChanged="TextBox_TextChanged"
                      FontFamily="Courier New" IsReadOnly="True" IsReadOnlyCaretVisible="True" />
         </Grid>
 

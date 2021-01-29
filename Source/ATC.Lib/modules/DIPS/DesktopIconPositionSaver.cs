@@ -47,7 +47,24 @@ namespace ATC.Lib.modules.DIPS
 
 			LogHeader("DesktopIconPositionSaver");
 
-			LVItem[] dicons = RemoteListView.GetDesktopListView();
+            try
+            {
+				Run();
+            }
+            catch (Exception e)
+			{
+				LogRoot("Exception: " + e);
+				_task.SetErrored();
+				rootTask.SetErrored();
+			}
+
+
+			_task.FinishSuccess();
+		}
+
+		private void Run()
+		{
+			var dicons = new Desktop().GetIconsPositions();
 
 			LogProxy(_task, $@"Found {dicons.Length} Icons on Desktop");
 
@@ -61,7 +78,7 @@ namespace ATC.Lib.modules.DIPS
 			JObject s_sec = null;
 
 			JArray screens = new JArray();
-			foreach (Screen  scr in Screen.AllScreens)
+			foreach (Screen scr in Screen.AllScreens)
 			{
 				JObject screenobj = new JObject();
 				screenobj["primary"] = scr.Primary;
@@ -99,12 +116,12 @@ namespace ATC.Lib.modules.DIPS
 
 			JArray iconarr = new JArray();
 
-			foreach (LVItem lvicon in dicons)
+			foreach (var lvicon in dicons)
 			{
 				JObject jo = new JObject();
 				jo["title"] = lvicon.Name;
-				jo["x"] = lvicon.Location.x;
-				jo["y"] = lvicon.Location.y;
+				jo["x"] = lvicon.X;
+				jo["y"] = lvicon.Y;
 
 				iconarr.Add(jo);
 			}
@@ -114,8 +131,6 @@ namespace ATC.Lib.modules.DIPS
 			string iconsav_content = iconsav.ToString(Formatting.Indented);
 
 			VcontrolIconSav(iconsav_content);
-
-			_task.FinishSuccess();
 		}
 
 		private bool IsValidDateTimeFileName(string path)

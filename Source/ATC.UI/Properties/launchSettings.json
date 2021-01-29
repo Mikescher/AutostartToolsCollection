@@ -2,7 +2,7 @@
   "profiles": {
     "ATC.UI": {
       "commandName": "Project",
-      "commandLineArgs": "--dir=\"F:\\Temp\\atc_test\""
+      "commandLineArgs": "--dir=\"F:\\Temp\\atc_test\" --runonly=\"dips\""
     }
   }
 }

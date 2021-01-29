@@ -8,7 +8,8 @@
     <ApplicationIcon>IconMain.ico</ApplicationIcon>
     
     <RootNamespace>ATC.UI</RootNamespace>
-    <AssemblyTitle>ATC.UI</AssemblyTitle>
+    <AssemblyTitle>ATC</AssemblyTitle>
+    <AssemblyName>ATC</AssemblyName>
     
     <AssemblyVersion>3.0.0.0</AssemblyVersion>
     <AssemblyFileVersion>3.0.0.0</AssemblyFileVersion>

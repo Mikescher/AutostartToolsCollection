@@ -6,7 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     
     <RootNamespace>ATC.Console</RootNamespace>
-    <AssemblyTitle>ATC.Console</AssemblyTitle>
+    <AssemblyTitle>ATC</AssemblyTitle>
     
     <AssemblyVersion>1.1.14.0</AssemblyVersion>
     <AssemblyFileVersion>1.1.14.0</AssemblyFileVersion>

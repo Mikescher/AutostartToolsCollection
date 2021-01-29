@@ -14,4 +14,8 @@
 
     <OutDir>..\..\Bin\DesktopAPI\$(Configuration)\</OutDir>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="UIAutomationClient" />
+  </ItemGroup>
 </Project>

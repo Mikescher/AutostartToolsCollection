@@ -47,51 +47,60 @@ namespace ATC.Lib.modules.AWC
 			if (_task == null) return;
 			_task.Start();
 
-			LogHeader("AutoWallChange");
-
-			if (string.IsNullOrWhiteSpace(Settings.pathWallpaperFile))
+            try
 			{
-				LogProxy(_task, "pathWallpaperFile not set");
+				LogHeader("AutoWallChange");
+
+				if (string.IsNullOrWhiteSpace(Settings.pathWallpaperFile))
+				{
+					LogProxy(_task, "pathWallpaperFile not set");
+					_task.SetErrored();
+					rootTask.SetErrored();
+					return;
+				}
+
+				if (Path.GetExtension(Settings.pathWallpaperFile) != ".bmp")
+				{
+					LogProxy(_task, "pathWallpaper must direct to a *.bmp file");
+					_task.SetErrored();
+					rootTask.SetErrored();
+					return;
+				}
+
+				exclusionfileHD1080 = Path.Combine(WorkingDirectory, "exclusions.config");
+
+				LogProxy(_task, "Monitor Constellation: " + GetConstellationString());
+
+				if (Screen.AllScreens.Any(p => !(Eq(p, 1920, 1080) || Eq(p, 1280, 1024))))
+				{
+					LogProxy(_task, "Unknown Monitor Constellation");
+					_task.SetErrored();
+					return;
+				}
+
+				LogProxy(_task, "");
+
+				var img = CreateMultiMonitorImage();
+
+				if (img == null)
+				{
+					LogProxy(_task, "Error while creating MultiMonitor Wallpaper");
+					_task.SetErrored();
+					return;
+				}
+
+				img.Save(Settings.pathWallpaperFile, ImageFormat.Bmp);
+
+				WindowsWallpaperAPI.Set(Settings.pathWallpaperFile, WindowsWallpaperAPI.W_WP_Style.Tiled);
+
+				_task.FinishSuccess();
+			}
+            catch (Exception e)
+            {
+				LogRoot("Exception: " + e);
 				_task.SetErrored();
 				rootTask.SetErrored();
-				return;
-			}
-
-			if (Path.GetExtension(Settings.pathWallpaperFile) != ".bmp")
-			{
-				LogProxy(_task, "pathWallpaper must direct to a *.bmp file");
-				_task.SetErrored();
-				rootTask.SetErrored();
-				return;
-			}
-
-			exclusionfileHD1080 = Path.Combine(WorkingDirectory, "exclusions.config");
-
-			LogProxy(_task, "Monitor Constellation: " + GetConstellationString());
-
-			if (Screen.AllScreens.Any(p => !(Eq(p, 1920, 1080) || Eq(p, 1280, 1024))))
-			{
-				LogProxy(_task, "Unknown Monitor Constellation");
-				_task.SetErrored();
-				return;
-			}
-
-			LogProxy(_task, "");
-
-			var img = CreateMultiMonitorImage();
-
-			if (img == null)
-			{
-				LogProxy(_task, "Error while creating MultiMonitor Wallpaper");
-				_task.SetErrored();
-				return;
-			}
-
-			img.Save(Settings.pathWallpaperFile, ImageFormat.Bmp);
-
-			WindowsWallpaperAPI.Set(Settings.pathWallpaperFile, WindowsWallpaperAPI.W_WP_Style.Tiled);
-
-			_task.FinishSuccess();
+            }
 		}
 
 		private string GetConstellationString() => string.Join(" -- ", Screen.AllScreens.Select(p => string.Format("[{0}x{1}]", p.Bounds.Width, p.Bounds.Height)));
