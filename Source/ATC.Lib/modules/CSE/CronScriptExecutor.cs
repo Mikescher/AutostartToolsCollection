@@ -111,7 +111,7 @@ namespace ATC.Lib.modules.CSE
 			LogProxy(proxy, $@"Start script [{id}] {entry.name}");
 
 			var currThread = Thread.CurrentThread;
-			var timeout = entry.TimeoutMilliseconds;
+			var timeout = entry.TimeoutMilliseconds();
 			var timeoutFail = entry.failOnTimeout;
 			(new Thread(() =>
 			{
