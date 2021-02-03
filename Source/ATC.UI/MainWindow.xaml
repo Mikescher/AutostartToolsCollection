@@ -20,9 +20,9 @@
         Title="AutostartToolsCollection [UI]" Height="950" Width="800">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
+            <RowDefinition Height="4*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="3*" />
+            <RowDefinition Height="9*" />
             <RowDefinition Height="16" />
         </Grid.RowDefinitions>
 
@@ -60,6 +60,8 @@
             </ListBox.ItemTemplate>
             
         </ListBox>
+
+        <Button Grid.Row="0" Margin="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" MinWidth="40" Content="..." Click="OpenWorkingDirectory"/>
 
         <GridSplitter Margin="1,0" Grid.Row="1" Background="LightGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="3" Focusable="False" />
 

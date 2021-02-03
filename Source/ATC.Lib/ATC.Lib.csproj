@@ -8,9 +8,9 @@
     <RootNamespace>ATC.Lib</RootNamespace>
     <AssemblyTitle>ATC.Lib</AssemblyTitle>
     
-    <AssemblyVersion>3.0.0.0</AssemblyVersion>
-    <AssemblyFileVersion>3.0.0.0</AssemblyFileVersion>
-    <AssemblyInformationalVersion>3.0.0.0</AssemblyInformationalVersion>
+    <AssemblyVersion>3.0.1.0</AssemblyVersion>
+    <AssemblyFileVersion>3.0.1.0</AssemblyFileVersion>
+    <AssemblyInformationalVersion>3.0.1.0</AssemblyInformationalVersion>
 
     <OutDir>..\..\Bin\Lib\$(Configuration)\</OutDir>
   </PropertyGroup>

@@ -7,6 +7,7 @@ using ATC.Lib.modules.TVC;
 using MSHC.Util.Helper;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -24,7 +25,9 @@ namespace ATC.UI
         private bool _isAutoClosing = false;
         private bool _abortAutoClosing = false;
 
-        private ATCLogger logger = null;
+        private readonly CommandLineArguments args;
+        private readonly string workingDirectory;
+        private readonly ATCLogger logger;
 
         public MainWindow()
         {
@@ -34,6 +37,13 @@ namespace ATC.UI
 
             _vm.Tasks.Add(_mainTask = new ATCTaskProxy("AutostartToolsCollection", "ATC"));
             _vm.SelectedTask = _mainTask;
+
+            args = new CommandLineArguments(Environment.GetCommandLineArgs(), false);
+
+            workingDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"ATC\");
+            if (args.Contains("dir")) workingDirectory = args.GetStringDefault("dir", workingDirectory);
+
+            logger = new ATCLogger(workingDirectory);
 
             DispatcherHelper.InvokeDelayed(Start, 1250);
         }
@@ -71,12 +81,6 @@ namespace ATC.UI
         {
             _mainTask.Start();
 
-            var args = new CommandLineArguments(Environment.GetCommandLineArgs(), false);
-
-            var workingDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"ATC\");
-            if (args.Contains("dir")) workingDirectory = args.GetStringDefault("dir", workingDirectory);
-
-            logger = new ATCLogger(workingDirectory);
             _mainTask.RegisterRoot();
 
             var config = new ConfigWrapper(workingDirectory);
@@ -232,6 +236,11 @@ namespace ATC.UI
         private void TextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             (sender as TextBox)?.ScrollToEnd();
+        }
+
+        private void OpenWorkingDirectory(object sender, RoutedEventArgs e)
+        {
+            Process.Start("explorer.exe", workingDirectory);
         }
     }
 }
