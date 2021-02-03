@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using MSHC.Util.Helper;
 using System.Diagnostics;
+using System.Collections.Concurrent;
 
 namespace ATC.Lib.modules.CSE
 {
@@ -57,58 +58,46 @@ namespace ATC.Lib.modules.CSE
 		{
 			if (!_tasks.Any()) return;
 
-			var timeout = _tasks.Max(p => p.script.timeout);
-
-			var processes = new List<Thread>();
-			var entryDict = new Dictionary<Thread, (CSEEntry script, ATCTaskProxy proxy)>();
+			var processes = new List<(int id, string name, Thread thread, (CSEEntry script, ATCTaskProxy proxy) entry)>();
+			var timeoutProcesses = new ConcurrentQueue<int>();
 
 			var i = 0;
 			foreach (var entry in _tasks)
 			{
 				var id = i++;
-				var t = new Thread(() => { ExecuteSingle(entry.script, entry.proxy, id); });
+				var t = new Thread(() => { ExecuteSingle(entry.script, entry.proxy, id, timeoutProcesses); });
 				Thread.Sleep(500);
 
-				processes.Add(t);
-				entryDict.Add(t, entry);
+				processes.Add((id, entry.script.name, t, entry));
 
 				t.Start();
 			}
 
-			var ltime = timeout;
-			while (ltime > 0 && processes.Any())
+			while (processes.Any())
 			{
 				Thread.Sleep(32);
-				ltime -= 32;
 
-				foreach (var finProc in processes.Where(p => !p.IsAlive).ToList())
+				foreach (var finProc in processes.Where(p => !p.thread.IsAlive).ToList())
 				{
-					var finProcInfo = entryDict[finProc];
-					LogRoot("Process " + finProcInfo.script.name + " finished.");
+					LogRoot("Process " + finProc.entry.script.name + " finished.");
 					processes.Remove(finProc);
 				}
-			}
 
-			foreach (var errProc in processes)
-			{
-				var errProcInfo = entryDict[errProc];
-				LogRoot(errProcInfo.script.name + " Process still running - continue ATC...");
-
-				if (errProcInfo.script.failOnTimeout)
-				{
-					errProcInfo.proxy.SetErrored();
-					LogProxy(errProcInfo.proxy, $"CSE :: Process timeout -- continue ATC...");
+				while (timeoutProcesses.TryDequeue(out var id))
+                {
+					var rm = processes.FirstOrDefault(p => p.id == id);
+					if (rm != default)
+					{
+						LogRoot("Process " + rm.entry.script.name + " timed out.");
+						processes.Remove(rm);
+					}
 				}
 			}
 
-			if (!processes.Any())
-			{
-				LogRoot("All processes finished");
-			}
-
+			LogRoot("Finished");
 		}
 
-		private void ExecuteSingle(CSEEntry entry, ATCTaskProxy proxy, int id)
+		private void ExecuteSingle(CSEEntry entry, ATCTaskProxy proxy, int id, ConcurrentQueue<int> timeoutQueue)
 		{
 			proxy.Start();
 
@@ -120,6 +109,37 @@ namespace ATC.Lib.modules.CSE
 			}
 
 			LogProxy(proxy, $@"Start script [{id}] {entry.name}");
+
+			var currThread = Thread.CurrentThread;
+			var timeout = entry.TimeoutMilliseconds;
+			var timeoutFail = entry.failOnTimeout;
+			(new Thread(() =>
+			{
+				// Watchdog
+				var sw = Stopwatch.StartNew();
+				for (;;)
+                {
+					if (!currThread.IsAlive) return;
+
+					if (sw.ElapsedMilliseconds > timeout)
+                    {
+						if (timeoutFail)
+						{
+							LogProxy(proxy, $"Process '{entry.name}' timeout (fail-on-timeout) -- continue ATC...");
+							proxy.SetErrored();
+						}
+						else
+						{
+							LogProxy(proxy, $"Process '{entry.name}' still running (no-fail-on-timeout) - continue ATC...");
+						}
+
+						timeoutQueue.Enqueue(id);
+						return;
+					}
+
+					Thread.Sleep(100);
+                }
+			}){ IsBackground = true }).Start();
 
 			ProcessOutput output;
 			try
