@@ -26,13 +26,21 @@ namespace ATC.Lib.modules.TVC.Formatter
 
 			var linenum = 0;
 
-			var next_is_dl = true;
-			var in_comment = false;
+			var next_is_dl       = true;
+			var in_comment       = false;
+			var search_for_close = false;
 
 			foreach (var rline in Regex.Split(code, @"\r?\n"))
 			{
 				var line = rline.Trim();
 				linenum++;
+
+				if (search_for_close)
+                {
+					if (line.StartsWith("<")) throw new Exception($"[{linenum}] Unfinished tag. Line := {line}");
+					if (line.EndsWith(">")) { search_for_close = false; continue; }
+					continue;
+				}
 
 				if (string.IsNullOrWhiteSpace(line)) continue;
 
@@ -44,13 +52,26 @@ namespace ATC.Lib.modules.TVC.Formatter
 
 				if (in_comment) continue;
 
-				if (linenum == 1 && line.StartsWith("<!DOCTYPE")) continue;
+				if (linenum == 1 && line.StartsWith("<!DOCTYPE"))
+                {
+					if (!line.Trim().EndsWith(">")) search_for_close = true;
+					continue;
+				}
 				
 				if (line.StartsWith("<HR>")) { continue; } //ignore
 
 				if (line.StartsWith("<META"))
 				{
 					if (curr != root) throw new Exception($"[{linenum}] <META> only allowed in top-level. Line := {line}");
+					if (!line.Trim().EndsWith(">")) search_for_close = true;
+
+					continue;
+				}
+
+				if (line.StartsWith("<meta"))
+				{
+					if (curr != root) throw new Exception($"[{linenum}] <meta> only allowed in top-level. Line := {line}");
+					if (!line.Trim().EndsWith(">")) search_for_close = true;
 
 					continue;
 				}
